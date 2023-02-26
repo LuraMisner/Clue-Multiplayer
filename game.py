@@ -1,4 +1,3 @@
-from board import Board
 from characters import Characters
 from deck import Deck
 from envelope import Envelope
@@ -8,7 +7,7 @@ from player import Player
 class Game:
     def __init__(self, gid):
         self.id = gid
-        self.started = False
+        self.turn = 0
 
         self.deck = Deck()
         self.deck.shuffle()
@@ -55,3 +54,24 @@ class Game:
 
         print("Invalid Character Selection")
         return False
+
+    def win_condition(self, character, weapon, room):
+        pass
+
+    def get_id(self):
+        return self.id
+
+    def get_player_count(self):
+        return self.player_count
+
+    def get_player_location(self, player_id):
+        return self.players[player_id].get_position()
+
+    def get_all_player_locations(self):
+        pass
+
+    def whos_turn(self):
+        return self.turn % self.player_count
+
+    def get_won(self):
+        return self.won

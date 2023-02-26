@@ -1,33 +1,36 @@
+import constants
 import pygame
-from network import Network
+from board import Board
 from characters import Characters
-from player import Player
+from network import Network
 
+
+WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
+pygame.display.set_caption("Clue")
 pygame.init()
-WIDTH = 1000
-HEIGHT = 1000
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Client")
+
+
+def show_ready(n):
+    # Show how many players are ready
+    WIN.fill(constants.BACKGROUND)
+    num_ready = n.send('num_ready')
+    font = pygame.font.SysFont(None, 56)
+    WIN.blit(font.render(f'Waiting on other players...', True, (0, 0, 0)), (275, 200))
+    WIN.blit(font.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, (0, 0, 0)), (275, 275))
 
 
 def select_character(n) -> Characters:
     selection_made = False
     choice = None
 
-    pygame.init()
-    SQUARE_SIZE = 100
-
-    # Colors
-    WHITE = (255, 255, 255)
-    MUSTARD = (189, 138, 11)
-    PLUM = (89, 6, 138)
-    GREEN = (9, 112, 30)
-    SCARLET = (255, 3, 7)
-    PEACOCK = (20, 41, 156)
-
     while not selection_made:
         available_characters = n.send('character_selection')
-        WIN.fill((192, 192, 192))
+        WIN.fill(constants.BACKGROUND)
+
+        # How many players ready
+        num_ready = n.send('num_ready')
+        font1 = pygame.font.SysFont(None, 26)
+        WIN.blit(font1.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, (0, 0, 0)), (50, 50))
 
         # Title
         header = pygame.font.SysFont(None, 60)
@@ -43,27 +46,25 @@ def select_character(n) -> Characters:
             mapping[ch] = (x, y)
 
             if ch == Characters.COLONEL_MUSTARD:
-                color = MUSTARD
+                color = constants.MUSTARD
             elif ch == Characters.MISS_SCARLET:
-                color = SCARLET
+                color = constants.SCARLET
             elif ch == Characters.MR_PEACOCK:
-                color = PEACOCK
+                color = constants.PEACOCK
             elif ch == Characters.MRS_WHITE:
-                color = WHITE
+                color = constants.WHITE
             elif ch == Characters.PROFESSOR_PLUM:
-                color = PLUM
+                color = constants.PLUM
             else:
                 # Reverend Green
-                color = GREEN
+                color = constants.GREEN
 
-            rect = pygame.Rect(x, y, SQUARE_SIZE, SQUARE_SIZE)
+            rect = pygame.Rect(x, y, constants.CHARACTER_SELECTION_SIZE, constants.CHARACTER_SELECTION_SIZE)
             pygame.draw.rect(WIN, color, rect)
 
         # Listen for clicks
         ev = pygame.event.get()
         for event in ev:
-
-            # handle MOUSEBUTTONUP
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
 
@@ -72,13 +73,15 @@ def select_character(n) -> Characters:
                     x, y = pos
                     x2, y2 = mapping[key]
 
-                    if x2 < x < x2 + SQUARE_SIZE and y2 < y < y2 + SQUARE_SIZE:
+                    if x2 < x < x2 + constants.CHARACTER_SELECTION_SIZE and \
+                            y2 < y < y2 + constants.CHARACTER_SELECTION_SIZE:
                         choice = key
 
         # Selection update
         WIN.blit(font.render('Character Selected: ', True, (0, 0, 0)), (300, 500))
 
         if choice:
+            # If a choice has been made, add a confirmation button to create the player
             WIN.blit(font.render(choice.value, True, (0, 0, 0)), (550, 500))
 
             # Button to confirm selection (will confirm the selection made if choice != None
@@ -92,8 +95,6 @@ def select_character(n) -> Characters:
             # Listen for clicks
             ev = pygame.event.get()
             for event in ev:
-
-                # handle MOUSEBUTTONUP
                 if event.type == pygame.MOUSEBUTTONUP:
                     pos = pygame.mouse.get_pos()
 
@@ -109,7 +110,28 @@ def select_character(n) -> Characters:
 
 def main():
     n = Network()
+    print("Selecting character...")
     selected = select_character(n)
+    print("Creating player...")
     n.send(selected.value)
+
+    # How to wait for the start
+    ready = False
+    while not ready:
+        show_ready(n)
+        pygame.display.update()
+        ready = n.send('start')
+
+    print("Starting game...")
+    board = Board(WIN)
+
+    print("Loading board...")
+    board.draw_board()
+
+    game_finished = False
+    while not game_finished:
+        pygame.display.update()
+        game_finished = n.send('game_finished')
+
 
 main()
