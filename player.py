@@ -38,6 +38,9 @@ class Player:
     def get_character(self):
         return self.character
 
+    def get_notes(self):
+        return self.notes
+
     def print_notes(self):
         print("------------- NOTES -----------------")
         print("It can't be these characters:")

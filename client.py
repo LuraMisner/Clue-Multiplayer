@@ -8,15 +8,46 @@ from network import Network
 WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
 pygame.init()
-
 card_map = {}
 
 
+def draw_notes(name, notes):
+    header = pygame.font.SysFont('freesansbold.ttf', 32)
+    title = pygame.font.SysFont('freesansbold.ttf', 24)
+    font = pygame.font.SysFont('freesansbold.ttf', 20)
+
+    WIN.blit(header.render(f"{name}'s notes", True, constants.BLACK), (675, 30))
+
+    # Characters
+    WIN.blit(title.render("It can't be these characters: ", True, constants.BLACK), (675, 70))
+    for i, character in enumerate(notes[0]):
+        x = 680 + (i//4 * 125)
+        y = 95 + ((i % 4) * 20)
+        WIN.blit(font.render(f"{character}", True, constants.BLACK), (x, y))
+
+    # Weapons
+    WIN.blit(title.render("It can't be these weapons: ", True, constants.BLACK), (675, 200))
+    for i, weapon in enumerate(notes[1]):
+        x = 680 + (i//4 * 125)
+        y = 225 + ((i % 4) * 20)
+        WIN.blit(font.render(f"{weapon}", True, constants.BLACK), (x, y))
+
+    # Locations
+    WIN.blit(title.render("It can't be these locations: ", True, constants.BLACK), (675, 325))
+    for i, location in enumerate(notes[2]):
+        x = 680 + (i//4 * 125)
+        y = 350 + ((i % 4) * 20)
+        WIN.blit(font.render(f"{location}", True, constants.BLACK), (x, y))
+
+
 def draw_cards(cards):
-    font = pygame.font.SysFont(None, 14)
+    title = pygame.font.SysFont('freesansbold.ttf', 20)
+    font = pygame.font.SysFont('freesansbold.ttf', 14)
+    WIN.blit(title.render('Your cards ', True, constants.BLACK), (265, 635))
+
     for i, card in enumerate(cards):
         x = 10 + ((i % 6) * 100)
-        y = 635 + (30 * (i // 6))
+        y = 655 + (30 * (i // 6))
 
         rect = pygame.Rect(x, y, constants.CARD_SIZE_X, constants.CARD_SIZE_Y)
         pygame.draw.rect(WIN, constants.CARD, rect)
@@ -31,7 +62,7 @@ def show_ready(n):
     # Show how many players are ready
     WIN.fill(constants.BACKGROUND)
     num_ready = n.send('num_ready')
-    font = pygame.font.SysFont(None, 56)
+    font = pygame.font.SysFont('freesansbold.ttf', 56)
     WIN.blit(font.render(f'Waiting on other players...', True, (0, 0, 0)), (275, 200))
     WIN.blit(font.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, constants.BLACK), (275, 275))
 
@@ -46,12 +77,12 @@ def select_character(n) -> Characters:
 
         # How many players ready
         num_ready = n.send('num_ready')
-        font1 = pygame.font.SysFont(None, 26)
+        font1 = pygame.font.SysFont('freesansbold.ttf', 26)
         WIN.blit(font1.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, constants.BLACK), (50, 50))
 
         # Title
-        header = pygame.font.SysFont(None, 60)
-        font = pygame.font.SysFont(None, 32)
+        header = pygame.font.SysFont('freesansbold.ttf', 60)
+        font = pygame.font.SysFont('freesansbold.ttf', 32)
 
         WIN.blit(header.render('Select a Character', True, constants.BLACK), (300, 200))
 
@@ -148,6 +179,10 @@ def main():
     print("Getting cards...")
     cards = n.send(f'get_cards {selected.value}')
     draw_cards(cards)
+
+    print("Getting notes...")
+    notes = n.send(f'get_notes {selected.value}')
+    draw_notes(selected.value, notes)
 
     game_finished = False
     while not game_finished:

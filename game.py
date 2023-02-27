@@ -86,6 +86,11 @@ class Game:
             if player.get_character().value == character:
                 return player.get_cards()
 
+    def get_player_notes(self, character):
+        for player in self.players:
+            if player.get_character().value == character:
+                return player.get_notes()
+
     def get_all_player_locations(self):
         return [(player.character, player.get_position()) for player in self.players]
 
