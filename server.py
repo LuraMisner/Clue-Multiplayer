@@ -48,6 +48,7 @@ def threaded_client(conn, p, gameId):
                         # Make the player
                         try:
                             reply = game.add_player(data)
+                            character = data
                         except Exception as e:
                             print("Error adding player: ", e)
 
@@ -66,6 +67,13 @@ def threaded_client(conn, p, gameId):
                             if player:
                                 num_ready += 1
                         reply.append(num_ready)
+
+                    elif data[:9] == 'get_cards':
+                        character = data[10:]
+                        reply = game.get_player_cards(character)
+
+                        if not reply:
+                            print(f"Error getting {character}'s cards")
 
                     # Check if the game has finished
                     elif data == 'game_finished':

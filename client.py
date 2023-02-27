@@ -9,6 +9,23 @@ WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
 pygame.init()
 
+card_map = {}
+
+
+def draw_cards(cards):
+    font = pygame.font.SysFont(None, 14)
+    for i, card in enumerate(cards):
+        x = 10 + ((i % 6) * 100)
+        y = 635 + (30 * (i // 6))
+
+        rect = pygame.Rect(x, y, constants.CARD_SIZE_X, constants.CARD_SIZE_Y)
+        pygame.draw.rect(WIN, constants.CARD, rect)
+        card_value = card.get_value()
+        card_map[card_value] = (x, y)
+
+        WIN.blit(font.render(f'{card_value}', True, constants.BLACK),
+                 (x + 2.5*(17 - len(card_value)), y + 5))
+
 
 def show_ready(n):
     # Show how many players are ready
@@ -16,7 +33,7 @@ def show_ready(n):
     num_ready = n.send('num_ready')
     font = pygame.font.SysFont(None, 56)
     WIN.blit(font.render(f'Waiting on other players...', True, (0, 0, 0)), (275, 200))
-    WIN.blit(font.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, (0, 0, 0)), (275, 275))
+    WIN.blit(font.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, constants.BLACK), (275, 275))
 
 
 def select_character(n) -> Characters:
@@ -30,13 +47,13 @@ def select_character(n) -> Characters:
         # How many players ready
         num_ready = n.send('num_ready')
         font1 = pygame.font.SysFont(None, 26)
-        WIN.blit(font1.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, (0, 0, 0)), (50, 50))
+        WIN.blit(font1.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, constants.BLACK), (50, 50))
 
         # Title
         header = pygame.font.SysFont(None, 60)
         font = pygame.font.SysFont(None, 32)
 
-        WIN.blit(header.render('Select a Character', True, (0, 0, 0)), (300, 200))
+        WIN.blit(header.render('Select a Character', True, constants.BLACK), (300, 200))
 
         mapping = {}
         # Character options
@@ -78,11 +95,11 @@ def select_character(n) -> Characters:
                         choice = key
 
         # Selection update
-        WIN.blit(font.render('Character Selected: ', True, (0, 0, 0)), (300, 500))
+        WIN.blit(font.render('Character Selected: ', True, constants.BLACK), (300, 500))
 
         if choice:
             # If a choice has been made, add a confirmation button to create the player
-            WIN.blit(font.render(choice.value, True, (0, 0, 0)), (550, 500))
+            WIN.blit(font.render(choice.value, True, constants.BLACK), (550, 500))
 
             # Button to confirm selection (will confirm the selection made if choice != None
             rect = pygame.Rect(425, 600, 125, 65)
@@ -90,7 +107,7 @@ def select_character(n) -> Characters:
             rect = pygame.Rect(427, 602, 121, 61)
             pygame.draw.rect(WIN, (0, 255, 0), rect)
 
-            WIN.blit(font.render('Confirm', True, (0, 0, 0)), (442, 622))
+            WIN.blit(font.render('Confirm', True, constants.BLACK), (442, 622))
 
             # Listen for clicks
             ev = pygame.event.get()
@@ -127,6 +144,10 @@ def main():
 
     print("Loading board...")
     board.draw_board()
+
+    print("Getting cards...")
+    cards = n.send(f'get_cards {selected.value}')
+    draw_cards(cards)
 
     game_finished = False
     while not game_finished:

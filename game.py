@@ -93,7 +93,7 @@ class Game:
         return self.won
 
     def whos_turn(self):
-        return self.turn % self.player_count
+        return self.players[self.turn % self.player_count]
 
     def increment_turn(self):
         self.turn += 1

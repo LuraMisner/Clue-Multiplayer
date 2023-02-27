@@ -5,10 +5,14 @@ HEIGHT = 750
 
 # Sizes
 CHARACTER_SELECTION_SIZE = 100
+CARD_SIZE_X = 90
+CARD_SIZE_Y = 20
 
 
 # Colors
 BACKGROUND = (192, 192, 192)
+BLACK = (0, 0, 0)
+CARD = (235, 205, 96)
 
 # Character Colors
 WHITE = (255, 255, 255)
