@@ -2,14 +2,18 @@ from characters import Characters
 from deck import Deck
 from envelope import Envelope
 from player import Player
+import random
 
 
 class Game:
     def __init__(self, gid):
         self.id = gid
         self.turn = 0
+        self.won = False
+        self.split = False
 
         self.deck = Deck()
+        self.envelop = self.create_envelope()
         self.deck.shuffle()
 
         self.available_characters = [Characters.COLONEL_MUSTARD, Characters.PROFESSOR_PLUM, Characters.MR_PEACOCK,
@@ -18,17 +22,21 @@ class Game:
         self.start_positions = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
                                 'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
         self.players = []
-        self.player_cards = []
         self.player_count = 0
 
-        self.envelop = self.create_envelope()
-        self.won = False
-
     def create_envelope(self) -> Envelope:
-        pass
+        random_character = self.deck.deck.pop(random.randint(0, 5))
+        random_weapon = self.deck.deck.pop(random.randint(5, 10))
+        random_location = self.deck.deck.pop(random.randint(10, len(self.deck.deck) - 1))
+        return Envelope(random_character, random_weapon, random_location)
 
     def split_cards(self):
-        pass
+        self.split = True
+
+        while len(self.deck.deck) > 0:
+            for player in self.players:
+                if len(self.deck.deck) > 0:
+                    player.add_card(self.deck.deck.pop())
 
     def add_player(self, player) -> bool:
         character = None
@@ -56,22 +64,36 @@ class Game:
         return False
 
     def win_condition(self, character, weapon, room):
-        pass
+        if self.envelop.check_guess(character, weapon, room):
+            self.won = True
 
     def get_id(self):
         return self.id
 
+    def get_split(self):
+        return self.split
+
     def get_player_count(self):
         return self.player_count
 
-    def get_player_location(self, player_id):
-        return self.players[player_id].get_position()
+    def get_player_location(self, character):
+        for player in self.players:
+            if player.get_character().value == character:
+                return player.get_position()
+
+    def get_player_cards(self, character):
+        for player in self.players:
+            if player.get_character().value == character:
+                return player.get_cards()
 
     def get_all_player_locations(self):
-        pass
+        return [(player.character, player.get_position()) for player in self.players]
+
+    def get_won(self):
+        return self.won
 
     def whos_turn(self):
         return self.turn % self.player_count
 
-    def get_won(self):
-        return self.won
+    def increment_turn(self):
+        self.turn += 1

@@ -1,4 +1,5 @@
-from space import RoomType, Space
+from space import Space
+from roomtype import RoomType
 import pygame
 
 
@@ -957,6 +958,3 @@ class Board:
         self.window.blit(font.render('M', True, OOB), (6, 432))
         self.window.blit(font.render('PL', True, OOB), (577, 482))
         self.window.blit(font.render('S', True, OOB), (182, 607))
-
-
-
