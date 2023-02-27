@@ -55,6 +55,8 @@ def threaded_client(conn, p, gameId):
                     elif data == 'start':
                         ready[gameId][p] = True
                         reply = all(ready[gameId])
+                        if reply and not game.get_split():
+                            game.split_cards()
 
                     # Tells client how many players are ready out of the players in this game
                     elif data == 'num_ready':

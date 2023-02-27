@@ -1,8 +1,5 @@
-from card import Card, CardType
+from card import CardType
 from characters import Characters
-import random
-
-
 
 
 class Player:
@@ -37,6 +34,9 @@ class Player:
 
     def get_position(self):
         return self.position
+
+    def get_character(self):
+        return self.character
 
     def print_notes(self):
         print("------------- NOTES -----------------")
