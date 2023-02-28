@@ -86,6 +86,11 @@ class Game:
             if player.get_character().value == character:
                 return player.get_cards()
 
+    def get_player_notes(self, character):
+        for player in self.players:
+            if player.get_character().value == character:
+                return player.get_notes()
+
     def get_all_player_locations(self):
         return [(player.character, player.get_position()) for player in self.players]
 
@@ -93,7 +98,7 @@ class Game:
         return self.won
 
     def whos_turn(self):
-        return self.turn % self.player_count
+        return self.players[self.turn % self.player_count]
 
     def increment_turn(self):
         self.turn += 1

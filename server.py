@@ -48,8 +48,8 @@ def threaded_client(conn, p, gameId):
                         # Make the player
                         try:
                             reply = game.add_player(data)
-                        except Exception as e:
-                            print("Error adding player: ", e)
+                        except Exception as err:
+                            print("Error adding player: ", err)
 
                     # Indicates the player is ready, check to see if all players in this game are ready
                     elif data == 'start':
@@ -67,6 +67,23 @@ def threaded_client(conn, p, gameId):
                                 num_ready += 1
                         reply.append(num_ready)
 
+                    # Shows the client which cards they have been delt
+                    elif data[:9] == 'get_cards':
+                        character = data[10:]
+                        reply = game.get_player_cards(character)
+
+                        if not reply:
+                            print(f"Error getting {character}'s cards")
+
+                    # Shows the clients notes (differs from cards once they have learned information from other players)
+                    elif data[:9] == 'get_notes':
+                        character = data[10:]
+                        reply = game.get_player_notes(character)
+
+                    # Check whose turn it is
+                    elif data == 'whos_turn':
+                        reply = game.whos_turn()
+
                     # Check if the game has finished
                     elif data == 'game_finished':
                         reply = game.get_won()
@@ -74,8 +91,8 @@ def threaded_client(conn, p, gameId):
                     conn.sendall(pickle.dumps(reply))
             else:
                 break
-        except Exception as e:
-            print("Error: ", e)
+        except Exception as er:
+            print("Error: ", er)
             break
 
     print("Lost connection")
@@ -90,6 +107,7 @@ while True:
     idCount += 1
     gameId = (idCount - 1) // 2
 
+    # TODO: If the game that gameID points to has started, move to a different game
     # If the game does not exist, make a new one
     if gameId not in games:
         print("Creating a new game...")
@@ -98,4 +116,3 @@ while True:
 
     ready[gameId].append(False)
     start_new_thread(threaded_client, (conn, idCount-1, gameId))
-
