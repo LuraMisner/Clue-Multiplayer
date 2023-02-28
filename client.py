@@ -1,5 +1,6 @@
 import constants
 import pygame
+import random
 from board import Board
 from characters import Characters
 from network import Network
@@ -9,6 +10,12 @@ WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
 pygame.init()
 card_map = {}
+
+
+def draw_screen(board, cards, character, notes):
+    board.draw_board()
+    draw_cards(cards)
+    draw_notes(character.value, notes)
 
 
 def draw_notes(name, notes):
@@ -125,6 +132,13 @@ def select_character(n) -> Characters:
                             y2 < y < y2 + constants.CHARACTER_SELECTION_SIZE:
                         choice = key
 
+                # Check if it is the confirmation button
+                if choice:
+                    # Clicking confirmed
+                    x, y = pos
+                    if 425 <= x <= 425 + 125 and 600 <= y <= 600 + 65:
+                        selection_made = True
+
         # Selection update
         WIN.blit(font.render('Character Selected: ', True, constants.BLACK), (300, 500))
 
@@ -140,20 +154,21 @@ def select_character(n) -> Characters:
 
             WIN.blit(font.render('Confirm', True, constants.BLACK), (442, 622))
 
-            # Listen for clicks
-            ev = pygame.event.get()
-            for event in ev:
-                if event.type == pygame.MOUSEBUTTONUP:
-                    pos = pygame.mouse.get_pos()
-
-                    # Clicking confirmed
-                    x, y = pos
-                    if 425 <= x <= 425 + 125 and 600 <= y <= 600 + 65:
-                        selection_made = True
-
         pygame.display.update()
 
     return choice
+
+
+def whos_turn(n):
+    who = n.send('whos_turn')
+    font = pygame.font.SysFont('freesansbold.ttf', 24)
+    WIN.blit(font.render(f"It's {who.get_character().value}'s turn", True, constants.BLACK), (700, 725))
+    return who.get_character()
+
+
+def handle_turn(our_location):
+    moves = random.randint(2, 12)
+
 
 
 def main():
@@ -173,19 +188,21 @@ def main():
     print("Starting game...")
     board = Board(WIN)
 
-    print("Loading board...")
-    board.draw_board()
-
     print("Getting cards...")
     cards = n.send(f'get_cards {selected.value}')
-    draw_cards(cards)
 
     print("Getting notes...")
     notes = n.send(f'get_notes {selected.value}')
-    draw_notes(selected.value, notes)
 
     game_finished = False
     while not game_finished:
+        draw_screen(board, cards, selected, notes)
+        current_turn = whos_turn(n)
+
+        # Handle our turn
+        if current_turn == selected:
+            handle_turn(n)
+
         pygame.display.update()
         game_finished = n.send('game_finished')
 

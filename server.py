@@ -67,6 +67,7 @@ def threaded_client(conn, p, gameId):
                                 num_ready += 1
                         reply.append(num_ready)
 
+                    # Shows the client which cards they have been delt
                     elif data[:9] == 'get_cards':
                         character = data[10:]
                         reply = game.get_player_cards(character)
@@ -74,9 +75,14 @@ def threaded_client(conn, p, gameId):
                         if not reply:
                             print(f"Error getting {character}'s cards")
 
+                    # Shows the clients notes (differs from cards once they have learned information from other players)
                     elif data[:9] == 'get_notes':
                         character = data[10:]
                         reply = game.get_player_notes(character)
+
+                    # Check whose turn it is
+                    elif data == 'whos_turn':
+                        reply = game.whos_turn()
 
                     # Check if the game has finished
                     elif data == 'game_finished':
