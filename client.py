@@ -199,9 +199,33 @@ def draw_turn(who):
     WIN.blit(font.render(f"It's {who.get_character().value}'s turn", True, constants.BLACK), (700, 725))
 
 
-def handle_turn(our_location):
+def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
     moves = random.randint(2, 12)
-    print(our_location, moves)
+    pygame.event.clear()
+
+    while moves > 0:
+        ev = pygame.event.get()
+        for event in ev:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    player_positions[character.value] += 1
+                    moves -= 1
+
+                elif event.key == pygame.K_LEFT:
+                    player_positions[character.value] -= 1
+                    moves -= 1
+
+                elif event.key == pygame.K_DOWN:
+                    player_positions[character.value] += 24
+                    moves -= 1
+
+                elif event.key == pygame.K_UP:
+                    player_positions[character.value] -= 24
+                    moves -= 1
+
+        draw_screen(board, cards, character, notes, player_positions, current_turn)
+        pygame.display.update()
+    return player_positions
 
 
 def main():
@@ -228,15 +252,17 @@ def main():
     notes = n.send(f'get_notes {selected.value}')
 
     game_finished = False
-    previous_turn = None
-    player_positions = {}
+    previous_turn = 0
+    current_turn = n.send('whos_turn')
+    player_positions = n.send('get_all_positions')
 
     while not game_finished:
         # Ask whose turn it is
-        current_turn = n.send('whos_turn')
+        turn_num = n.send('turn')
 
         # If a player has moved, then get the positions of all players
-        if current_turn != previous_turn:
+        if turn_num != previous_turn:
+            current_turn = n.send('whos_turn')
             previous_turn = current_turn
             player_positions = n.send('get_all_positions')
 
@@ -245,8 +271,8 @@ def main():
 
         # Handle our turn
         if current_turn.get_character().value == selected.value:
-            if selected.value in player_positions:
-                handle_turn(player_positions[selected.value])
+            player_positions = handle_turn(board, cards, selected, notes, player_positions, current_turn)
+            n.send(f'update_position {selected.value},{player_positions[selected.value]}')
             n.send('turn_done')
 
         pygame.display.update()

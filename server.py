@@ -91,7 +91,14 @@ def threaded_client(conn, p, gameId):
                     # Player has finished their turn
                     elif data == 'turn_done':
                         game.increment_turn()
-                        reply = True
+
+                    elif data == 'turn':
+                        reply = game.get_turn()
+
+                    # Updates a player position
+                    elif data[:15] == 'update_position':
+                        character, position = data[16:].split(',')
+                        game.update_player_position(character, int(position))
 
                     # Check if the game has finished
                     elif data == 'game_finished':

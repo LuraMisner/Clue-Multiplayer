@@ -105,3 +105,11 @@ class Game:
 
     def increment_turn(self):
         self.turn += 1
+
+    def get_turn(self):
+        return self.turn
+
+    def update_player_position(self, name, position):
+        for player in self.players:
+            if player.get_character().value == name:
+                player.set_position(position)
