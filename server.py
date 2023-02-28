@@ -84,6 +84,15 @@ def threaded_client(conn, p, gameId):
                     elif data == 'whos_turn':
                         reply = game.whos_turn()
 
+                    # Get the positions of all players
+                    elif data == 'get_all_positions':
+                        reply = game.get_all_player_locations()
+
+                    # Player has finished their turn
+                    elif data == 'turn_done':
+                        game.increment_turn()
+                        reply = True
+
                     # Check if the game has finished
                     elif data == 'game_finished':
                         reply = game.get_won()

@@ -1,6 +1,7 @@
 from space import Space
 from roomtype import RoomType
 import pygame
+import constants
 
 
 class Board:
@@ -18,7 +19,7 @@ class Board:
         # The map of the board itself
         self.board = []
         self.window = window
-        self.board_mapping = []
+        self.board_mapping = {}
 
         self.create_board()
         self.draw_board()
@@ -712,7 +713,7 @@ class Board:
 
     def draw_board(self):
         # How big to make the spaces
-        SQUARE_SIZE = 25
+        SQUARE_SIZE = constants.SQUARE_SIZE
 
         # Define colors
         BACKGROUND = (192, 192, 192)
@@ -751,7 +752,7 @@ class Board:
                 if self.board[space_id].get_room() == RoomType.OUT_OF_BOUNDS:
                     rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                     pygame.draw.rect(self.window, OOB, rect)
-                    self.board_mapping.append((space_id, rect))
+                    self.board_mapping[space_id] = rect
 
                 # Hallway
                 elif self.board[space_id].get_room() == RoomType.HALLWAY:
@@ -760,7 +761,7 @@ class Board:
                     entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                 SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                     pygame.draw.rect(self.window, HALLWAY, entrance_rect)
-                    self.board_mapping.append((space_id, rect))
+                    self.board_mapping[space_id] = rect
 
                 # Kitchen
                 elif self.board[space_id].get_room() == RoomType.KITCHEN:
@@ -771,12 +772,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, KITCHEN, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Ballroom
                 elif self.board[space_id].get_room() == RoomType.BALL:
@@ -787,12 +788,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, BALL, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Conservatory
                 elif self.board[space_id].get_room() == RoomType.CONSERVATORY:
@@ -803,12 +804,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, CONSERVATORY, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Dining room
                 elif self.board[space_id].get_room() == RoomType.DINING:
@@ -819,12 +820,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, DINING, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Lounge
                 elif self.board[space_id].get_room() == RoomType.LOUNGE:
@@ -835,12 +836,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, LOUNGE, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Library
                 elif self.board[space_id].get_room() == RoomType.LIBRARY:
@@ -851,12 +852,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, LIBRARY, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Study
                 elif self.board[space_id].get_room() == RoomType.STUDY:
@@ -867,12 +868,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, STUDY, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Hall
                 elif self.board[space_id].get_room() == RoomType.HALL:
@@ -883,12 +884,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, HALL, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Billiard Room
                 elif self.board[space_id].get_room() == RoomType.BILLIARD:
@@ -899,12 +900,12 @@ class Board:
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, BILLIARDS, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Start positions
                 else:
@@ -927,7 +928,7 @@ class Board:
                     entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                 SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                     pygame.draw.rect(self.window, color, entrance_rect)
-                    self.board_mapping.append((space_id, rect))
+                    self.board_mapping[space_id] = rect
 
         # Outline of the board
         pygame.draw.line(self.window, OOB, (0, 0), (600, 0))
@@ -936,7 +937,7 @@ class Board:
         pygame.draw.line(self.window, OOB, (0, 0), (0, 625))
 
         # Room labels
-        font = pygame.font.SysFont(None, 22)
+        font = pygame.font.SysFont('freesansbold.ttf', 22)
         self.window.blit(font.render('Ballroom', True, OOB), (275, 120))
         self.window.blit(font.render('Billiard room', True, OOB), (480, 257))
         self.window.blit(font.render('Conservatory', True, OOB), (475, 57))
@@ -948,7 +949,7 @@ class Board:
         self.window.blit(font.render('Study', True, OOB), (495, 557))
 
         # Header label
-        header = pygame.font.SysFont(None, 40)
+        header = pygame.font.SysFont('freesansbold.ttf', 40)
         self.window.blit(header.render('CLUE', True, WHITE), (275, 325))
 
         # Spawn labels
@@ -958,3 +959,7 @@ class Board:
         self.window.blit(font.render('M', True, OOB), (6, 432))
         self.window.blit(font.render('PL', True, OOB), (577, 482))
         self.window.blit(font.render('S', True, OOB), (182, 607))
+
+    def get_mapping(self, key):
+        if key in self.board_mapping:
+            return self.board_mapping[key]

@@ -1,3 +1,4 @@
+import time
 import constants
 import pygame
 import random
@@ -12,10 +13,44 @@ pygame.init()
 card_map = {}
 
 
-def draw_screen(board, cards, character, notes):
+def draw_players(player_positions, board):
+    for character, position in player_positions.items():
+        square = board.get_mapping(position)
+        x, y = square[0], square[1]
+        x_length, y_length = square[2], square[3]
+
+        center_x = x + (x_length // 2)
+        center_y = y + (y_length // 2)
+
+        pygame.draw.circle(WIN, constants.BLACK, (center_x, center_y), (x_length // 2.5) + 3)
+        font = pygame.font.SysFont('freesansbold.ttf', 18)
+
+        if character == Characters.COLONEL_MUSTARD.value:
+            pygame.draw.circle(WIN, constants.MUSTARD, (center_x, center_y), x_length // 2.5)
+            WIN.blit(font.render('M', True, constants.BLACK), (center_x - 5, center_y - 5))
+        elif character == Characters.MRS_WHITE.value:
+            pygame.draw.circle(WIN, constants.WHITE, (center_x, center_y), x_length // 2.5)
+            WIN.blit(font.render('W', True, constants.BLACK), (center_x - 5, center_y - 5))
+        elif character == Characters.MR_PEACOCK.value:
+            pygame.draw.circle(WIN, constants.PEACOCK, (center_x, center_y), x_length // 2.5)
+            WIN.blit(font.render('PK', True, constants.BLACK), (center_x - 8, center_y - 5))
+        elif character == Characters.MISS_SCARLET.value:
+            pygame.draw.circle(WIN, constants.SCARLET, (center_x, center_y), x_length // 2.5)
+            WIN.blit(font.render('S', True, constants.BLACK), (center_x - 4, center_y - 5))
+        elif character == Characters.PROFESSOR_PLUM.value:
+            pygame.draw.circle(WIN, constants.PLUM, (center_x, center_y), x_length // 2.5)
+            WIN.blit(font.render('PL', True, constants.BLACK), (center_x - 8, center_y - 5))
+        else:
+            pygame.draw.circle(WIN, constants.GREEN, (center_x, center_y), x_length // 2.5)
+            WIN.blit(font.render('G', True, constants.BLACK), (center_x - 5, center_y - 5))
+
+
+def draw_screen(board, cards, character, notes, player_positions, current_turn):
     board.draw_board()
+    draw_players(player_positions, board)
     draw_cards(cards)
     draw_notes(character.value, notes)
+    draw_turn(current_turn)
 
 
 def draw_notes(name, notes):
@@ -159,16 +194,14 @@ def select_character(n) -> Characters:
     return choice
 
 
-def whos_turn(n):
-    who = n.send('whos_turn')
+def draw_turn(who):
     font = pygame.font.SysFont('freesansbold.ttf', 24)
     WIN.blit(font.render(f"It's {who.get_character().value}'s turn", True, constants.BLACK), (700, 725))
-    return who.get_character()
 
 
 def handle_turn(our_location):
     moves = random.randint(2, 12)
-
+    print(our_location, moves)
 
 
 def main():
@@ -195,16 +228,30 @@ def main():
     notes = n.send(f'get_notes {selected.value}')
 
     game_finished = False
+    previous_turn = None
+    player_positions = {}
+
     while not game_finished:
-        draw_screen(board, cards, selected, notes)
-        current_turn = whos_turn(n)
+        # Ask whose turn it is
+        current_turn = n.send('whos_turn')
+
+        # If a player has moved, then get the positions of all players
+        if current_turn != previous_turn:
+            previous_turn = current_turn
+            player_positions = n.send('get_all_positions')
+
+        # Draw the board
+        draw_screen(board, cards, selected, notes, player_positions, current_turn)
 
         # Handle our turn
-        if current_turn == selected:
-            handle_turn(n)
+        if current_turn.get_character().value == selected.value:
+            if selected.value in player_positions:
+                handle_turn(player_positions[selected.value])
+            n.send('turn_done')
 
         pygame.display.update()
         game_finished = n.send('game_finished')
+        time.sleep(2)
 
 
 main()

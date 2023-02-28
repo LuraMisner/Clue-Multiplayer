@@ -3,6 +3,7 @@ from deck import Deck
 from envelope import Envelope
 from player import Player
 import random
+import constants
 
 
 class Game:
@@ -19,8 +20,6 @@ class Game:
         self.available_characters = [Characters.COLONEL_MUSTARD, Characters.PROFESSOR_PLUM, Characters.MR_PEACOCK,
                                      Characters.MRS_WHITE, Characters.REVEREND_GREEN, Characters.MISS_SCARLET]
 
-        self.start_positions = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
-                                'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
         self.players = []
         self.player_count = 0
 
@@ -55,7 +54,7 @@ class Game:
             character = Characters.REVEREND_GREEN
 
         if character:
-            self.players.append(Player(character, self.start_positions[player]))
+            self.players.append(Player(character, constants.START_POSITIONS[player]))
             self.player_count += 1
             self.available_characters.remove(character)
             return True
@@ -92,7 +91,11 @@ class Game:
                 return player.get_notes()
 
     def get_all_player_locations(self):
-        return [(player.character, player.get_position()) for player in self.players]
+        d = {}
+        for player in self.players:
+            d[player.get_character().value] = player.get_position()
+
+        return d
 
     def get_won(self):
         return self.won

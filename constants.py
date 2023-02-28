@@ -3,8 +3,13 @@
 WIDTH = 1000
 HEIGHT = 750
 
+# Start positions
+START_POSITIONS = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
+                                'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
+
 # Sizes
 CHARACTER_SELECTION_SIZE = 100
+SQUARE_SIZE = 25
 CARD_SIZE_X = 90
 CARD_SIZE_Y = 20
 
