@@ -11,10 +11,30 @@ class Board:
                                 'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
 
         # Map of room -> ids of entrances
-        self.entrances = {'Ballroom': [128, 135, 177, 182], 'Billiard Room': [234, 310],
-                          'Conservatory': [139, 'Lounge'], 'Dining Room': [295, 366], 'Hall': [443, 444, 494],
-                          'Kitchen': [148, 'Study'], 'Library': [356, 401], 'Lounge': [462, 'Conservatory'],
-                          'Study': [521, 'Kitchen']}
+        self.entrances = {'Ballroom': [128, 135, 177, 182], 'Billiard Room': [234, 310], 'Conservatory': [139],
+                          'Dining Room': [295, 366], 'Hall': [443, 444, 494], 'Kitchen': [148],
+                          'Library': [356, 401], 'Lounge': [462], 'Study': [521]}
+
+        # Set player positions to display them in the room
+        self.room_display = {'Ballroom': [154, 157, 82, 85, 105, 110],
+                             'Billiard Room': [235, 237, 263, 283, 285, 308],
+                             'Conservatory': [141, 91, 119, 43, 46, 21],
+                             'Dining Room': [246, 244, 241, 318, 316, 313],
+                             'Hall': [465, 470, 513, 518, 561, 566],
+                             'Kitchen': [100, 97, 26, 28, 146, 3],
+                             'Library': [378, 380, 382, 426, 428, 430],
+                             'Lounge': [486, 483, 480, 534, 531, 528],
+                             'Study': [545, 523, 526, 551, 571, 574]}
+
+        self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
+                              'Billiard Room': [False, False, False, False, False, False],
+                              'Conservatory': [False, False, False, False, False, False],
+                              'Dining Room': [False, False, False, False, False, False],
+                              'Hall': [False, False, False, False, False, False],
+                              'Kitchen': [False, False, False, False, False, False],
+                              'Library': [False, False, False, False, False, False],
+                              'Lounge': [False, False, False, False, False, False],
+                              'Study': [False, False, False, False, False, False]}
 
         # The map of the board itself
         self.board = []
@@ -963,3 +983,6 @@ class Board:
     def get_mapping(self, key):
         if key in self.board_mapping:
             return self.board_mapping[key]
+
+    def in_room(self, position):
+        return self.board[position].get_room().value
