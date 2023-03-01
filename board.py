@@ -6,10 +6,6 @@ import constants
 
 class Board:
     def __init__(self, window):
-        # Map of characters -> start position
-        self.start_positions = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
-                                'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
-
         # Map of room -> ids of entrances
         self.entrances = {'Ballroom': [128, 135, 177, 182], 'Billiard Room': [234, 310], 'Conservatory': [139],
                           'Dining Room': [295, 366], 'Hall': [443, 444, 494], 'Kitchen': [148],
@@ -26,6 +22,7 @@ class Board:
                              'Lounge': [486, 483, 480, 534, 531, 528],
                              'Study': [545, 523, 526, 551, 571, 574]}
 
+        # Keeps track of how many players have occupied the room
         self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
                               'Billiard Room': [False, False, False, False, False, False],
                               'Conservatory': [False, False, False, False, False, False],
@@ -929,15 +926,15 @@ class Board:
 
                 # Start positions
                 else:
-                    if self.start_positions['Colonel Mustard'] == space_id:
+                    if constants.START_POSITIONS['Colonel Mustard'] == space_id:
                         color = MUSTARD
-                    elif self.start_positions['Miss Scarlet'] == space_id:
+                    elif constants.START_POSITIONS['Miss Scarlet'] == space_id:
                         color = SCARLET
-                    elif self.start_positions['Mr.Peacock'] == space_id:
+                    elif constants.START_POSITIONS['Mr.Peacock'] == space_id:
                         color = PEACOCK
-                    elif self.start_positions['Mrs.White'] == space_id:
+                    elif constants.START_POSITIONS['Mrs.White'] == space_id:
                         color = WHITE
-                    elif self.start_positions['Professor Plum'] == space_id:
+                    elif constants.START_POSITIONS['Professor Plum'] == space_id:
                         color = PLUM
                     else:
                         # Reverend Green
@@ -986,3 +983,14 @@ class Board:
 
     def in_room(self, position):
         return self.board[position].get_room().value
+
+    def refresh_room_occupied(self):
+        self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
+                              'Billiard Room': [False, False, False, False, False, False],
+                              'Conservatory': [False, False, False, False, False, False],
+                              'Dining Room': [False, False, False, False, False, False],
+                              'Hall': [False, False, False, False, False, False],
+                              'Kitchen': [False, False, False, False, False, False],
+                              'Library': [False, False, False, False, False, False],
+                              'Lounge': [False, False, False, False, False, False],
+                              'Study': [False, False, False, False, False, False]}

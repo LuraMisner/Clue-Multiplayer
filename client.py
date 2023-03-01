@@ -266,6 +266,18 @@ def calculate_valid_moves(board, character, player_positions) -> [str]:
     return directions
 
 
+def populate_rooms(board, player_positions):
+    board.refresh_room_occupied()
+
+    for player in player_positions.keys():
+        room = board.in_room(player_positions[player])
+
+        if room not in ['Hallway', 'OFB', 'Start']:
+            if player_positions[player] in board.room_display[room]:
+                index = board.room_display[room].index(player_positions[player])
+                board.room_occupied[room][index] = True
+
+
 def give_room_position(board, player_position) -> int:
     room = None
     for r in board.entrances.keys():
@@ -312,6 +324,7 @@ def pick_exit(board, room):
 
 
 def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
+    populate_rooms(board, player_positions)
 
     # If they are in a room, then let them pick an exit of that room to use
     room = board.in_room(player_positions[character.value])
