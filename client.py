@@ -15,6 +15,16 @@ card_map = {}
 
 
 def draw_screen(board, cards, character, notes, player_positions, current_turn):
+    """
+    Used to call all the individual functions that make up the components of the GUI
+    :param board: Board object to reflect the board being shown
+    :param cards: Array of Card objects to represent the players cards
+    :param character: Character object reflecting our player
+    :param notes: Array of information gathered throughout the game Index 0: Characters, 1: Weapons, 2: Locations
+    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param current_turn: String representing the name of the character whose turn it is
+    :return: Nothing
+    """
     board.draw_board()
     draw_players(player_positions, board)
     draw_cards(cards)
@@ -23,6 +33,12 @@ def draw_screen(board, cards, character, notes, player_positions, current_turn):
 
 
 def draw_players(player_positions, board):
+    """
+    Draws the player piece (circle) on the screen at their current position
+    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param board:  Board object that represents the board
+    :return: Nothing
+    """
     for character, position in player_positions.items():
         square = board.get_mapping(position)
         x, y = square[0], square[1]
@@ -54,17 +70,33 @@ def draw_players(player_positions, board):
             WIN.blit(font.render('G', True, constants.BLACK), (center_x - 5, center_y - 5))
 
 
-def draw_turn(who):
+def draw_turn(player):
+    """
+    Draws an indicator that tells the player whose turn it is
+    :param player: Character whose turn it is
+    :return: Nothing
+    """
     font = pygame.font.SysFont('freesansbold.ttf', 24)
-    WIN.blit(font.render(f"It's {who.get_character().value}'s turn", True, constants.BLACK), (700, 725))
+    WIN.blit(font.render(f"It's {player.get_character().value}'s turn", True, constants.BLACK), (700, 725))
 
 
 def draw_moves(move):
+    """
+    Draws an indicator that tells the player how many moves they have left
+    :param move: Integer of how many moves are left
+    :return: Nothing
+    """
     font = pygame.font.SysFont('freesansbold.ttf', 24)
     WIN.blit(font.render(f'You have {move} moves left', True, constants.SCARLET), (700, 700))
 
 
 def draw_notes(name, notes):
+    """
+    Draws information that tells the player what they already know in relation to the murder mystery
+    :param name: Characters name (str)
+    :param notes: Information this player knows (arr length 3) Index 0: characters, Index 1: weapons, Index 2: locations
+    :return: Nothing
+    """
     header = pygame.font.SysFont('freesansbold.ttf', 32)
     title = pygame.font.SysFont('freesansbold.ttf', 24)
     font = pygame.font.SysFont('freesansbold.ttf', 20)
@@ -94,6 +126,11 @@ def draw_notes(name, notes):
 
 
 def draw_cards(cards):
+    """
+    Draws the visual of the cards being held by the player
+    :param cards: an array of Card objects that belong to the player
+    :return: Nothing
+    """
     title = pygame.font.SysFont('freesansbold.ttf', 20)
     font = pygame.font.SysFont('freesansbold.ttf', 14)
     WIN.blit(title.render('Your cards ', True, constants.BLACK), (265, 635))
@@ -102,16 +139,23 @@ def draw_cards(cards):
         x = 10 + ((i % 6) * 100)
         y = 655 + (30 * (i // 6))
 
+        # Card background
         rect = pygame.Rect(x, y, constants.CARD_SIZE_X, constants.CARD_SIZE_Y)
         pygame.draw.rect(WIN, constants.CARD, rect)
         card_value = card.get_value()
         card_map[card_value] = (x, y)
 
+        # Card text
         WIN.blit(font.render(f'{card_value}', True, constants.BLACK),
                  (x + 2.5*(17 - len(card_value)), y + 5))
 
 
 def show_ready(n):
+    """
+    Creates a waiting screen for players in the game that have finished selecting their character
+    :param n: Network object used to talk to the server
+    :return: Nothing
+    """
     # Show how many players are ready
     WIN.fill(constants.BACKGROUND)
     num_ready = n.send('num_ready')
@@ -121,6 +165,11 @@ def show_ready(n):
 
 
 def select_character(n) -> Characters:
+    """
+    Draws the character selection screen and allows the player to select what character they want to be
+    :param n: Network object used to see what characters are still available in this game
+    :return: Character object representing the character the player has chosen
+    """
     selection_made = False
     choice = None
 
@@ -205,38 +254,30 @@ def select_character(n) -> Characters:
     return choice
 
 
-def is_entrance(board, space) -> bool:
-    for key in board.entrances.keys():
-        if space in board.entrances[key]:
+def occupied(space, player_positions) -> bool:
+    """
+    Shows whether a position is occupied by a player
+    :param space: ID of the space (int)
+    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :return: Bool
+    """
+    for key in player_positions.keys():
+        if space == player_positions[key]:
             return True
 
     return False
 
 
 def calculate_valid_moves(board, character, player_positions) -> [str]:
+    """
+    Calculates which direction the player can move from their current position
+    :param board: Board object
+    :param character: Character object representing our player's character
+    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :return: Nothing
+    """
     directions = []
     position = player_positions[character.value]
-
-    # This chunk adds the option for the user to use secret passages when in particular rooms
-    # But also to allow the user to pick an entrance to leave from (if there are multiple)
-    if position in board.entrances['Kitchen']:
-        directions.append('Kitchen')
-    elif position in board.entrances['Study']:
-        directions.append('Kitchen')
-    elif position in board.entrances['Lounge']:
-        directions.append('Conservatory')
-    elif position in board.entrances['Conservatory']:
-        directions.append('Lounge')
-
-    # TODO: some places have multiple entrances, so when it comes to leaving the room, then they will have
-    # TODO: to pick an exit
-
-    def occupied(space) -> bool:
-        for key in player_positions.keys():
-            if space == player_positions[key]:
-                return True
-
-        return False
 
     # Check for valid movements (right, left, down, up).
     dr = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -250,8 +291,8 @@ def calculate_valid_moves(board, character, player_positions) -> [str]:
 
         # Verify that the rows and columns are within the proper ranges
         if 0 <= nr < 25 and 0 <= nc < 24:
-            if (not occupied(space_id) and board.board[space_id].get_room()) == RoomType.HALLWAY \
-               or is_entrance(board, space_id):
+            if (not occupied(space_id, player_positions) and board.board[space_id].get_room()) == RoomType.HALLWAY \
+               or Board.is_entrance(space_id):
                 # Add the position to the valid directions dictionary
                 if ind == 0:
                     directions.append('Right')
@@ -267,10 +308,16 @@ def calculate_valid_moves(board, character, player_positions) -> [str]:
 
 
 def populate_rooms(board, player_positions):
+    """
+    Updates the board to reflect people being in a certain room
+    :param board: Board object
+    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :return:
+    """
     board.refresh_room_occupied()
 
     for player in player_positions.keys():
-        room = board.in_room(player_positions[player])
+        room = board.what_room(player_positions[player])
 
         if room not in ['Hallway', 'OFB', 'Start']:
             if player_positions[player] in board.room_display[room]:
@@ -279,11 +326,15 @@ def populate_rooms(board, player_positions):
 
 
 def give_room_position(board, player_position) -> int:
-    room = None
-    for r in board.entrances.keys():
-        if player_position in board.entrances[r]:
-            room = r
+    """
+    When the player enters a room, they will be given an available display position within the room
+    :param board: Board object
+    :param player_position: Dictionary mapping characters name (str) -> position on board (int)
+    :return: ID of new player position (int)
+    """
 
+    # Figure out which room and insert the player at the next display spot
+    room = board.what_room(player_position)
     for i in range(6):
         if board.room_occupied[room][i]:
             continue
@@ -297,13 +348,27 @@ def give_room_position(board, player_position) -> int:
 
 
 def free_position(board, room, position):
+    """
+    When the player leaves a room, this function marks their position as unoccupied.
+    :param board: Board object
+    :param room: String representing what room the player is leaving
+    :param position: The position that they were in before leaving
+    :return: Nothing
+    """
     if room in board.room_occupied:
         if position in board.room_display[room]:
             index = board.room_display[room].index(position)
             board.room_occupied[room][index] = False
 
 
-def pick_exit(board, room):
+def pick_exit(board, room) -> int:
+    """
+    When there is multiple exits in a room, this function allows the user to select the one they wish to leave through
+    by clicking on the space
+    :param board: Board object
+    :param room: String representing the room name
+    :return: Integer of selected entrance/exit position
+    """
     font = pygame.font.SysFont('freesansbold.ttf', 24)
     WIN.blit(font.render(f'Select an exit from {room} by clicking on it', True, constants.SCARLET), (650, 700))
 
@@ -314,8 +379,8 @@ def pick_exit(board, room):
             if event.type == pygame.MOUSEBUTTONUP:
                 x2, y2 = pygame.mouse.get_pos()
 
-                if room in board.entrances:
-                    for entrance in board.entrances[room]:
+                if room in constants.ENTRANCES:
+                    for entrance in constants.ENTRANCES[room]:
                         x, y, x_length, y_length = board.get_mapping(entrance)
 
                         if x <= x2 <= x + x_length and y <= y2 <= y + y_length:
@@ -324,30 +389,45 @@ def pick_exit(board, room):
 
 
 def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
+    """
+    Primary function for handling the clients turn, allows the player to move and enter/exit rooms
+    :param board: Board object
+    :param cards: Array of Card objects used to update
+    :param character: Character object representing our player
+    :param notes: Array of strings representing information learned throughout the game
+    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param current_turn: String of a characters name reflecting whose turn it is
+    :return: Dictionary mapping {character names (str) -> position on board (int)}, an updated version of
+    player_positions to reflect the move made back to the server
+    """
     populate_rooms(board, player_positions)
 
     # If they are in a room, then let them pick an exit of that room to use
-    room = board.in_room(player_positions[character.value])
+    room = board.what_room(player_positions[character.value])
     exiting = False
     if room not in ['Hallway', 'OFB', 'Start']:
         # Free the position in the room
         free_position(board, room, player_positions[character.value])
 
-        if len(board.entrances[room]) > 1:
+        if len(constants.ENTRANCES[room]) > 1:
             player_positions[character.value] = pick_exit(board, room)
         else:
-            player_positions[character.value] = board.entrances[room][0]
+            player_positions[character.value] = constants.ENTRANCES[room][0]
 
         exiting = True
 
+    # How many spaces the player can move during their turn (equivalent to rolling 2 dice)
     moves = random.randint(2, 12)
     pygame.event.clear()
 
     while moves > 0:
+
         valid_moves = calculate_valid_moves(board, character, player_positions)
         ev = pygame.event.get()
         for event in ev:
+
             if event.type == pygame.KEYDOWN:
+
                 if event.key == pygame.K_RIGHT:
                     if 'Right' in valid_moves:
                         player_positions[character.value] += 1
@@ -373,7 +453,7 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
                         exiting = False
 
         # Handle a player entering the room
-        if not exiting and is_entrance(board, player_positions[character.value]):
+        if not exiting and Board.is_entrance(player_positions[character.value]):
             moves = 0
             player_positions[character.value] = give_room_position(board, player_positions[character.value])
 
