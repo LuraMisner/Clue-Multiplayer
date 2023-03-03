@@ -19,18 +19,24 @@ class Game:
         self.available_characters = [Characters.COLONEL_MUSTARD, Characters.PROFESSOR_PLUM, Characters.MR_PEACOCK,
                                      Characters.MRS_WHITE, Characters.REVEREND_GREEN, Characters.MISS_SCARLET]
 
-        self.start_positions = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
-                                'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
         self.players = []
         self.player_count = 0
 
     def create_envelope(self) -> Envelope:
+        """
+        Randomly selects three cards (one of each type) from the deck and creates the envelope
+        :return: Envelope object
+        """
         random_character = self.deck.deck.pop(random.randint(0, 5))
         random_weapon = self.deck.deck.pop(random.randint(5, 10))
         random_location = self.deck.deck.pop(random.randint(10, len(self.deck.deck) - 1))
         return Envelope(random_character, random_weapon, random_location)
 
     def split_cards(self):
+        """
+        Splits the deck of cards between the current players
+        :return: None
+        """
         self.split = True
 
         while len(self.deck.deck) > 0:
@@ -39,6 +45,11 @@ class Game:
                     player.add_card(self.deck.deck.pop())
 
     def add_player(self, player) -> bool:
+        """
+        Creates the player objects
+        :param player: String of a characters name
+        :return: Boolean of whether creating the player was successful
+        """
         character = None
 
         if player == 'Colonel Mustard':
@@ -55,7 +66,7 @@ class Game:
             character = Characters.REVEREND_GREEN
 
         if character:
-            self.players.append(Player(character, self.start_positions[player]))
+            self.players.append(Player(character))
             self.player_count += 1
             self.available_characters.remove(character)
             return True
@@ -64,41 +75,98 @@ class Game:
         return False
 
     def win_condition(self, character, weapon, room):
+        """
+        :param character: String representing characters name
+        :param weapon: String representing weapons name
+        :param room: String representing a room
+        """
         if self.envelop.check_guess(character, weapon, room):
             self.won = True
 
-    def get_id(self):
+    def get_id(self) -> int:
+        """
+        :return: Integer of game ID
+        """
         return self.id
 
-    def get_split(self):
+    def get_split(self) -> bool:
+        """
+        :return: Boolean representing if cards have been distributed to the players
+        """
         return self.split
 
-    def get_player_count(self):
+    def get_player_count(self) -> int:
+        """
+        :return: Integer count of players
+        """
         return self.player_count
 
+    def get_won(self) -> bool:
+        """
+        :return: Boolean of whether the game has been won
+        """
+        return self.won
+
+    def whos_turn(self):
+        """
+        Calculates which players turn it is
+        :return: Player object
+        """
+        return self.players[self.turn % self.player_count]
+
+    def get_turn(self):
+        """
+        :return: Integer representing how many turns have happened in the game
+        """
+        return self.turn
+
+    def increment_turn(self):
+        self.turn += 1
+
     def get_player_location(self, character):
+        """
+        :param character: String of a character name
+        :return: Integer space ID of that players position
+        """
         for player in self.players:
             if player.get_character().value == character:
                 return player.get_position()
 
     def get_player_cards(self, character):
+        """
+        :param character: String of a character name
+        :return: Array of Card objects
+        """
         for player in self.players:
             if player.get_character().value == character:
                 return player.get_cards()
 
     def get_player_notes(self, character):
+        """
+        :param character: String of a character name
+        :return: Array of (3) arrays of strings
+        """
         for player in self.players:
             if player.get_character().value == character:
                 return player.get_notes()
 
     def get_all_player_locations(self):
-        return [(player.character, player.get_position()) for player in self.players]
+        """
+        :return: Dictionary mapping of { characters name (str) -> characters position (int) }
+        """
+        d = {}
+        for player in self.players:
+            d[player.get_character().value] = player.get_position()
 
-    def get_won(self):
-        return self.won
+        return d
 
-    def whos_turn(self):
-        return self.players[self.turn % self.player_count]
-
-    def increment_turn(self):
-        self.turn += 1
+    def update_player_position(self, name, position):
+        """
+        Updates a players position
+        :param name: Name of the character
+        :param position: New position
+        :return: None
+        """
+        for player in self.players:
+            if player.get_character().value == name:
+                player.set_position(position)

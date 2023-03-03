@@ -1,29 +1,92 @@
 from space import Space
 from roomtype import RoomType
 import pygame
+import constants
 
 
 class Board:
     def __init__(self, window):
-        # Map of characters -> start position
-        self.start_positions = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
-                                'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
+        # Set player positions to display them in the room
+        self.room_display = {'Ballroom': [154, 157, 82, 85, 105, 110],
+                             'Billiard Room': [235, 237, 263, 283, 285, 308],
+                             'Conservatory': [141, 91, 119, 43, 46, 21],
+                             'Dining Room': [246, 244, 241, 318, 316, 313],
+                             'Hall': [465, 470, 513, 518, 561, 566],
+                             'Kitchen': [100, 97, 26, 28, 146, 3],
+                             'Library': [378, 380, 382, 426, 428, 430],
+                             'Lounge': [486, 483, 480, 534, 531, 528],
+                             'Study': [545, 523, 526, 551, 571, 574]}
 
-        # Map of room -> ids of entrances
-        self.entrances = {'Ballroom': [128, 135, 177, 182], 'Billiard Room': [234, 310],
-                          'Conservatory': [139, 'Lounge'], 'Dining Room': [295, 366], 'Hall': [443, 444, 494],
-                          'Kitchen': [148, 'Study'], 'Library': [356, 401], 'Lounge': [462, 'Conservatory'],
-                          'Study': [521, 'Kitchen']}
+        # Keeps track of how many players have occupied the room
+        self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
+                              'Billiard Room': [False, False, False, False, False, False],
+                              'Conservatory': [False, False, False, False, False, False],
+                              'Dining Room': [False, False, False, False, False, False],
+                              'Hall': [False, False, False, False, False, False],
+                              'Kitchen': [False, False, False, False, False, False],
+                              'Library': [False, False, False, False, False, False],
+                              'Lounge': [False, False, False, False, False, False],
+                              'Study': [False, False, False, False, False, False]}
 
         # The map of the board itself
         self.board = []
-        self.window = window
-        self.board_mapping = []
-
         self.create_board()
-        self.draw_board()
+
+        # Display window
+        self.window = window
+
+        # Maps the space ID to a square on the board
+        self.board_mapping = {}
+
+    @staticmethod
+    def is_entrance(space):
+        """
+        Determines if a position is an entrance to a room
+        :param space: Integer ID of the position
+        :return: Boolean
+        """
+        for key in constants.ENTRANCES.keys():
+            if space in constants.ENTRANCES[key]:
+                return True
+
+        return False
+
+    def get_mapping(self, key):
+        """
+        :param key: Integer of space ID
+        :return: Pygame.rect object -> (top left x, top left right, x length, y length)
+        """
+        if key in self.board_mapping:
+            return self.board_mapping[key]
+
+    def what_room(self, position):
+        """
+        Returns what room a space is
+        :param position: Integer of space ID
+        :return: String correlating to room type
+        """
+        return self.board[position].get_room().value
+
+    def refresh_room_occupied(self):
+        """
+        Refreshes room status to unoccupied
+        :return: Nothing
+        """
+        self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
+                              'Billiard Room': [False, False, False, False, False, False],
+                              'Conservatory': [False, False, False, False, False, False],
+                              'Dining Room': [False, False, False, False, False, False],
+                              'Hall': [False, False, False, False, False, False],
+                              'Kitchen': [False, False, False, False, False, False],
+                              'Library': [False, False, False, False, False, False],
+                              'Lounge': [False, False, False, False, False, False],
+                              'Study': [False, False, False, False, False, False]}
 
     def create_board(self):
+        """
+        Creates the board by each space row by row and populates the board array
+        :return: Nothing
+        """
         # Create the 25 x 24 space board
         # Row 0
         self.board.append(Space(0, False, RoomType.KITCHEN))
@@ -676,6 +739,10 @@ class Board:
         self.board.append(Space(599, False, RoomType.STUDY))
 
     def print_board(self):
+        """
+        prints the board out in terminal
+        :return: Nothing
+        """
         # 25 rows, 24 columns
         for r in range(0, 25):
             row = ''
@@ -711,14 +778,16 @@ class Board:
             print(row)
 
     def draw_board(self):
+        """
+        Draws out the visuals for the board representation on the GUI, also creates the board mapping of ID -> Square
+        :return: Nothing
+        """
         # How big to make the spaces
-        SQUARE_SIZE = 25
+        SQUARE_SIZE = constants.SQUARE_SIZE
 
         # Define colors
-        BACKGROUND = (192, 192, 192)
         HALLWAY = (133, 76, 38)
         ENTRANCES = (192, 192, 192)
-        OOB = (0, 0, 0)
         KITCHEN = (232, 167, 155)
         BALL = (196, 245, 199)
         CONSERVATORY = (58, 173, 214)
@@ -729,14 +798,7 @@ class Board:
         HALL = (118, 194, 174)
         STUDY = (93, 101, 163)
 
-        WHITE = (255, 255, 255)
-        MUSTARD = (189, 138, 11)
-        PLUM = (89, 6, 138)
-        GREEN = (9, 112, 30)
-        SCARLET = (255, 3, 7)
-        PEACOCK = (20, 41, 156)
-
-        self.window.fill(BACKGROUND)
+        self.window.fill(constants.BACKGROUND)
 
         # How I want this to look:
         # Hallway tiles will have a black outline, but rooms and out of bounds will be full tile color
@@ -750,211 +812,211 @@ class Board:
                 # Out of bounds
                 if self.board[space_id].get_room() == RoomType.OUT_OF_BOUNDS:
                     rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                    pygame.draw.rect(self.window, OOB, rect)
-                    self.board_mapping.append((space_id, rect))
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
+                    self.board_mapping[space_id] = rect
 
                 # Hallway
                 elif self.board[space_id].get_room() == RoomType.HALLWAY:
                     rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                    pygame.draw.rect(self.window, OOB, rect)
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
                     entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                 SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                     pygame.draw.rect(self.window, HALLWAY, entrance_rect)
-                    self.board_mapping.append((space_id, rect))
+                    self.board_mapping[space_id] = rect
 
                 # Kitchen
                 elif self.board[space_id].get_room() == RoomType.KITCHEN:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Kitchen']:
+                    if space_id in constants.ENTRANCES['Kitchen']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, KITCHEN, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Ballroom
                 elif self.board[space_id].get_room() == RoomType.BALL:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Ballroom']:
+                    if space_id in constants.ENTRANCES['Ballroom']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, BALL, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Conservatory
                 elif self.board[space_id].get_room() == RoomType.CONSERVATORY:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Conservatory']:
+                    if space_id in constants.ENTRANCES['Conservatory']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, CONSERVATORY, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Dining room
                 elif self.board[space_id].get_room() == RoomType.DINING:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Dining Room']:
+                    if space_id in constants.ENTRANCES['Dining Room']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, DINING, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Lounge
                 elif self.board[space_id].get_room() == RoomType.LOUNGE:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Lounge']:
+                    if space_id in constants.ENTRANCES['Lounge']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, LOUNGE, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Library
                 elif self.board[space_id].get_room() == RoomType.LIBRARY:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Library']:
+                    if space_id in constants.ENTRANCES['Library']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, LIBRARY, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Study
                 elif self.board[space_id].get_room() == RoomType.STUDY:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Study']:
+                    if space_id in constants.ENTRANCES['Study']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, STUDY, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Hall
                 elif self.board[space_id].get_room() == RoomType.HALL:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Hall']:
+                    if space_id in constants.ENTRANCES['Hall']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, HALL, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Billiard Room
                 elif self.board[space_id].get_room() == RoomType.BILLIARD:
                     # Outline and different colors for entrances of a room
-                    if space_id in self.entrances['Billiard Room']:
+                    if space_id in constants.ENTRANCES['Billiard Room']:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                        pygame.draw.rect(self.window, OOB, rect)
+                        pygame.draw.rect(self.window, constants.BLACK, rect)
                         entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                     SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                         pygame.draw.rect(self.window, ENTRANCES, entrance_rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                     else:
                         rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                         pygame.draw.rect(self.window, BILLIARDS, rect)
-                        self.board_mapping.append((space_id, rect))
+                        self.board_mapping[space_id] = rect
 
                 # Start positions
                 else:
-                    if self.start_positions['Colonel Mustard'] == space_id:
-                        color = MUSTARD
-                    elif self.start_positions['Miss Scarlet'] == space_id:
-                        color = SCARLET
-                    elif self.start_positions['Mr.Peacock'] == space_id:
-                        color = PEACOCK
-                    elif self.start_positions['Mrs.White'] == space_id:
-                        color = WHITE
-                    elif self.start_positions['Professor Plum'] == space_id:
-                        color = PLUM
+                    if constants.START_POSITIONS['Colonel Mustard'] == space_id:
+                        color = constants.MUSTARD
+                    elif constants.START_POSITIONS['Miss Scarlet'] == space_id:
+                        color = constants.SCARLET
+                    elif constants.START_POSITIONS['Mr.Peacock'] == space_id:
+                        color = constants.PEACOCK
+                    elif constants.START_POSITIONS['Mrs.White'] == space_id:
+                        color = constants.WHITE
+                    elif constants.START_POSITIONS['Professor Plum'] == space_id:
+                        color = constants.PLUM
                     else:
                         # Reverend Green
-                        color = GREEN
+                        color = constants.GREEN
 
                     rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                    pygame.draw.rect(self.window, OOB, rect)
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
                     entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
                                                 SQUARE_SIZE - 2, SQUARE_SIZE - 2)
                     pygame.draw.rect(self.window, color, entrance_rect)
-                    self.board_mapping.append((space_id, rect))
+                    self.board_mapping[space_id] = rect
 
         # Outline of the board
-        pygame.draw.line(self.window, OOB, (0, 0), (600, 0))
-        pygame.draw.line(self.window, OOB, (600, 0), (600, 625))
-        pygame.draw.line(self.window, OOB, (0, 625), (600, 625))
-        pygame.draw.line(self.window, OOB, (0, 0), (0, 625))
+        pygame.draw.line(self.window, constants.BLACK, (0, 0), (600, 0))
+        pygame.draw.line(self.window, constants.BLACK, (600, 0), (600, 625))
+        pygame.draw.line(self.window, constants.BLACK, (0, 625), (600, 625))
+        pygame.draw.line(self.window, constants.BLACK, (0, 0), (0, 625))
 
         # Room labels
-        font = pygame.font.SysFont(None, 22)
-        self.window.blit(font.render('Ballroom', True, OOB), (275, 120))
-        self.window.blit(font.render('Billiard room', True, OOB), (480, 257))
-        self.window.blit(font.render('Conservatory', True, OOB), (475, 57))
-        self.window.blit(font.render('Dining room', True, OOB), (50, 307))
-        self.window.blit(font.render('Hall', True, OOB), (289, 507))
-        self.window.blit(font.render('Kitchen', True, OOB), (50, 57))
-        self.window.blit(font.render('Library', True, OOB), (495, 407))
-        self.window.blit(font.render('Lounge', True, OOB), (50, 532))
-        self.window.blit(font.render('Study', True, OOB), (495, 557))
+        font = pygame.font.SysFont('freesansbold.ttf', 22)
+        self.window.blit(font.render('Ballroom', True, constants.BLACK), (275, 120))
+        self.window.blit(font.render('Billiard room', True, constants.BLACK), (480, 257))
+        self.window.blit(font.render('Conservatory', True, constants.BLACK), (475, 57))
+        self.window.blit(font.render('Dining room', True, constants.BLACK), (50, 307))
+        self.window.blit(font.render('Hall', True, constants.BLACK), (289, 507))
+        self.window.blit(font.render('Kitchen', True, constants.BLACK), (50, 57))
+        self.window.blit(font.render('Library', True, constants.BLACK), (495, 407))
+        self.window.blit(font.render('Lounge', True, constants.BLACK), (50, 532))
+        self.window.blit(font.render('Study', True, constants.BLACK), (495, 557))
 
         # Header label
-        header = pygame.font.SysFont(None, 40)
-        self.window.blit(header.render('CLUE', True, WHITE), (275, 325))
+        header = pygame.font.SysFont('freesansbold.ttf', 40)
+        self.window.blit(header.render('CLUE', True, constants.WHITE), (275, 325))
 
         # Spawn labels
-        self.window.blit(font.render('W', True, OOB), (230, 7))
-        self.window.blit(font.render('G', True, OOB), (357, 7))
-        self.window.blit(font.render('PK', True, OOB), (577, 157))
-        self.window.blit(font.render('M', True, OOB), (6, 432))
-        self.window.blit(font.render('PL', True, OOB), (577, 482))
-        self.window.blit(font.render('S', True, OOB), (182, 607))
+        self.window.blit(font.render('W', True, constants.BLACK), (230, 7))
+        self.window.blit(font.render('G', True, constants.BLACK), (357, 7))
+        self.window.blit(font.render('PK', True, constants.BLACK), (577, 157))
+        self.window.blit(font.render('M', True, constants.BLACK), (6, 432))
+        self.window.blit(font.render('PL', True, constants.BLACK), (577, 482))
+        self.window.blit(font.render('S', True, constants.BLACK), (182, 607))

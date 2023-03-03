@@ -50,6 +50,7 @@ def threaded_client(conn, p, gameId):
                             reply = game.add_player(data)
                         except Exception as err:
                             print("Error adding player: ", err)
+                            reply = False
 
                     # Indicates the player is ready, check to see if all players in this game are ready
                     elif data == 'start':
@@ -83,6 +84,22 @@ def threaded_client(conn, p, gameId):
                     # Check whose turn it is
                     elif data == 'whos_turn':
                         reply = game.whos_turn()
+
+                    # Get the positions of all players
+                    elif data == 'get_all_positions':
+                        reply = game.get_all_player_locations()
+
+                    # Player has finished their turn
+                    elif data == 'turn_done':
+                        game.increment_turn()
+
+                    elif data == 'turn':
+                        reply = game.get_turn()
+
+                    # Updates a player position
+                    elif data[:15] == 'update_position':
+                        character, position = data[16:].split(',')
+                        game.update_player_position(character, int(position))
 
                     # Check if the game has finished
                     elif data == 'game_finished':
