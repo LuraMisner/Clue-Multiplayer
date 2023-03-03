@@ -11,6 +11,8 @@ from roomtype import RoomType
 WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
 pygame.init()
+
+n = Network()
 card_map = {}
 
 
@@ -21,7 +23,7 @@ def draw_screen(board, cards, character, notes, player_positions, current_turn):
     :param cards: Array of Card objects to represent the players cards
     :param character: Character object reflecting our player
     :param notes: Array of information gathered throughout the game Index 0: Characters, 1: Weapons, 2: Locations
-    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
     :param current_turn: String representing the name of the character whose turn it is
     :return: Nothing
     """
@@ -35,7 +37,7 @@ def draw_screen(board, cards, character, notes, player_positions, current_turn):
 def draw_players(player_positions, board):
     """
     Draws the player piece (circle) on the screen at their current position
-    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
     :param board:  Board object that represents the board
     :return: Nothing
     """
@@ -150,10 +152,9 @@ def draw_cards(cards):
                  (x + 2.5*(17 - len(card_value)), y + 5))
 
 
-def show_ready(n):
+def show_ready():
     """
     Creates a waiting screen for players in the game that have finished selecting their character
-    :param n: Network object used to talk to the server
     :return: Nothing
     """
     # Show how many players are ready
@@ -164,10 +165,9 @@ def show_ready(n):
     WIN.blit(font.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, constants.BLACK), (275, 275))
 
 
-def select_character(n) -> Characters:
+def select_character() -> Characters:
     """
     Draws the character selection screen and allows the player to select what character they want to be
-    :param n: Network object used to see what characters are still available in this game
     :return: Character object representing the character the player has chosen
     """
     selection_made = False
@@ -258,7 +258,7 @@ def occupied(space, player_positions) -> bool:
     """
     Shows whether a position is occupied by a player
     :param space: ID of the space (int)
-    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
     :return: Bool
     """
     for key in player_positions.keys():
@@ -273,7 +273,7 @@ def calculate_valid_moves(board, character, player_positions) -> [str]:
     Calculates which direction the player can move from their current position
     :param board: Board object
     :param character: Character object representing our player's character
-    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
+    :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
     :return: Nothing
     """
     directions = []
@@ -311,8 +311,8 @@ def populate_rooms(board, player_positions):
     """
     Updates the board to reflect people being in a certain room
     :param board: Board object
-    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
-    :return:
+    :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
+    :return: None
     """
     board.refresh_room_occupied()
 
@@ -329,7 +329,7 @@ def give_room_position(board, player_position) -> int:
     """
     When the player enters a room, they will be given an available display position within the room
     :param board: Board object
-    :param player_position: Dictionary mapping characters name (str) -> position on board (int)
+    :param player_position: Dictionary mapping {characters name (str) -> position on board (int)}
     :return: ID of new player position (int)
     """
 
@@ -388,40 +388,85 @@ def pick_exit(board, room) -> int:
         pygame.display.update()
 
 
-def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
-    """
-    Primary function for handling the clients turn, allows the player to move and enter/exit rooms
-    :param board: Board object
-    :param cards: Array of Card objects used to update
-    :param character: Character object representing our player
-    :param notes: Array of strings representing information learned throughout the game
-    :param player_positions: Dictionary mapping characters name (str) -> position on board (int)
-    :param current_turn: String of a characters name reflecting whose turn it is
-    :return: Dictionary mapping {character names (str) -> position on board (int)}, an updated version of
-    player_positions to reflect the move made back to the server
-    """
-    populate_rooms(board, player_positions)
+def draw_buttons(room) -> str:
+    choice = ''
+    font = pygame.font.SysFont('freesansbold.ttf', 22)
+    font2 = pygame.font.SysFont('freesansbold.ttf', 18)
 
-    # If they are in a room, then let them pick an exit of that room to use
-    room = board.what_room(player_positions[character.value])
-    exiting = False
-    if room not in ['Hallway', 'OFB', 'Start']:
-        # Free the position in the room
-        free_position(board, room, player_positions[character.value])
+    # Roll Dice button
+    background = pygame.Rect(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(632, 457, constants.BUTTON_SIZE_X - 4, constants.BUTTON_SIZE_Y - 4)
+    pygame.draw.rect(WIN, constants.ROLL_DICE, rect)
+    WIN.blit(font.render('Roll Dice', True, constants.BLACK), (647, 463))
 
-        if len(constants.ENTRANCES[room]) > 1:
-            player_positions[character.value] = pick_exit(board, room)
-        else:
-            player_positions[character.value] = constants.ENTRANCES[room][0]
+    # Suggestion button
+    background = pygame.Rect(655 + constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(657 + constants.BUTTON_SIZE_X, 457, constants.BUTTON_SIZE_X - 4, constants.BUTTON_SIZE_Y - 4)
+    pygame.draw.rect(WIN, constants.SUGGESTION, rect)
+    WIN.blit(font.render('Suggestion', True, constants.BLACK), (663 + constants.BUTTON_SIZE_X, 463))
 
-        exiting = True
+    # Accusation
+    background = pygame.Rect(680 + 2 * constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(682 + 2 * constants.BUTTON_SIZE_X, 457, constants.BUTTON_SIZE_X - 4, constants.BUTTON_SIZE_Y - 4)
+    pygame.draw.rect(WIN, constants.SCARLET, rect)
+    WIN.blit(font.render('Accusation', True, constants.BLACK), (688 + 2 * constants.BUTTON_SIZE_X, 463))
 
+    # Passage way
+    if room in ['Kitchen', 'Lounge', 'Conservatory', 'Study']:
+        background = pygame.Rect(630, 480 + constants.BUTTON_SIZE_Y, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y)
+        pygame.draw.rect(WIN, constants.BLACK, background)
+        rect = pygame.Rect(632, 482 + constants.BUTTON_SIZE_Y, constants.BUTTON_SIZE_X - 4, constants.BUTTON_SIZE_Y - 4)
+        pygame.draw.rect(WIN, constants.PASSAGE, rect)
+        WIN.blit(font2.render('Passage', True, constants.BLACK), (655, 514))
+
+        if room == 'Kitchen':
+            WIN.blit(font2.render('To Study', True, constants.BLACK), (655, 525))
+        elif room == 'Study':
+            WIN.blit(font2.render('To Kitchen', True, constants.BLACK), (648, 525))
+        elif room == 'Conservatory':
+            WIN.blit(font2.render('To Lounge', True, constants.BLACK), (650, 525))
+        elif room == 'Lounge':
+            WIN.blit(font2.render('To Conservatory', True, constants.BLACK), (633, 525))
+
+    pygame.event.clear()
+
+    while choice == '':
+        # Listen for clicks
+        ev = pygame.event.get()
+        for event in ev:
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                x, y = pos
+
+                # Check if they clicked the roll dice button
+                if 630 <= x <= 630 + constants.BUTTON_SIZE_X and 455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                    choice = 'Move'
+                elif 655 + constants.BUTTON_SIZE_X <= x <= 655 + 2 * constants.BUTTON_SIZE_X and \
+                        455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                    choice = 'Suggestion'
+
+                elif 680 + 2 * constants.BUTTON_SIZE_X <= x <= 680 + 3 * constants.BUTTON_SIZE_X and \
+                        455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                    choice = 'Accusation'
+
+                elif 630 <= x <= 630 + constants.BUTTON_SIZE_X and \
+                        480 + constants.BUTTON_SIZE_Y <= y <= 480 + 2 * constants.BUTTON_SIZE_Y:
+                    choice = 'Passage'
+
+        pygame.display.update()
+
+    return choice
+
+
+def roll_dice(board, cards, character, notes, player_positions, current_turn, exiting) -> {str: int}:
     # How many spaces the player can move during their turn (equivalent to rolling 2 dice)
     moves = random.randint(2, 12)
     pygame.event.clear()
 
     while moves > 0:
-
         valid_moves = calculate_valid_moves(board, character, player_positions)
         ev = pygame.event.get()
         for event in ev:
@@ -454,26 +499,88 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
 
         # Handle a player entering the room
         if not exiting and Board.is_entrance(player_positions[character.value]):
+            # Sleep for a second to give the illusion of actually entering the room
             moves = 0
             player_positions[character.value] = give_room_position(board, player_positions[character.value])
 
         draw_screen(board, cards, character, notes, player_positions, current_turn)
         draw_moves(moves)
         pygame.display.update()
+
+    return player_positions
+
+
+def make_suggestion(character, notes):
+    WIN.fill(constants.BACKGROUND)
+    draw_notes(character.value, notes)
+
+    # TODO: Select a player to ask
+
+    pygame.display.update()
+
+
+def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
+    populate_rooms(board, player_positions)
+    room = board.what_room(player_positions[character.value])
+
+    if room not in ['Hallway', 'OFB', 'Start']:
+        # Allow them to choose to move, make a suggestion, use a passageway, or make an accusation
+        choice = draw_buttons(room)
+
+        if choice == 'Move':
+            # Free the position in the room
+            free_position(board, room, player_positions[character.value])
+
+            # If there's multiple exits, let the player choose which one they want to leave from
+            if len(constants.ENTRANCES[room]) > 1:
+                player_positions[character.value] = pick_exit(board, room)
+            else:
+                player_positions[character.value] = constants.ENTRANCES[room][0]
+
+            roll_dice(board, cards, character, notes, player_positions, current_turn, True)
+
+        elif choice == 'Suggestion':
+            make_suggestion(character, notes)
+
+        elif choice == 'Accusation':
+            print("accusation")
+
+        elif choice == 'Passage':
+            if room == 'Kitchen':
+                player_positions[character.value] = constants.ENTRANCES['Study'][0]
+            elif room == 'Study':
+                player_positions[character.value] = constants.ENTRANCES['Kitchen'][0]
+            elif room == 'Conservatory':
+                player_positions[character.value] = constants.ENTRANCES['Lounge'][0]
+            elif room == 'Lounge':
+                player_positions[character.value] = constants.ENTRANCES['Conservatory'][0]
+
+            player_positions[character.value] = give_room_position(board, player_positions[character.value])
+
+    else:
+        player_positions = roll_dice(board, cards, character, notes, player_positions, current_turn, False)
+
     return player_positions
 
 
 def main():
-    n = Network()
+    selected = None
+    valid = False
+    ready = False
+    game_finished = False
+    previous_turn = 0
+
+    # Make sure that the choice selected by the user is valid
     print("Selecting character...")
-    selected = select_character(n)
+    while not valid:
+        selected = select_character()
+        valid = n.send(selected.value)
+
     print("Creating player...")
-    n.send(selected.value)
 
     # How to wait for the start
-    ready = False
     while not ready:
-        show_ready(n)
+        show_ready()
         pygame.display.update()
         ready = n.send('start')
 
@@ -486,8 +593,6 @@ def main():
     print("Getting notes...")
     notes = n.send(f'get_notes {selected.value}')
 
-    game_finished = False
-    previous_turn = 0
     current_turn = n.send('whos_turn')
     player_positions = n.send('get_all_positions')
 
@@ -512,7 +617,7 @@ def main():
 
         pygame.display.update()
         game_finished = n.send('game_finished')
-        time.sleep(2)
+        time.sleep(1)
 
 
 main()

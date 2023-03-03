@@ -4,6 +4,9 @@ from card import Card, CardType
 
 class Deck:
     def __init__(self):
+        """
+        Constructs the deck with the 21 unique cards
+        """
         self.deck = []
 
         # Characters
@@ -34,8 +37,14 @@ class Deck:
         self.deck.append(Card('Study', CardType.PLACE))
 
     def shuffle(self):
+        """
+        Shuffles the deck
+        """
         random.shuffle(self.deck)
 
     def to_string(self):
+        """
+        Prints the deck card by card
+        """
         for card in self.deck:
             card.to_string()

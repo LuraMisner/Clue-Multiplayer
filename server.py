@@ -50,6 +50,7 @@ def threaded_client(conn, p, gameId):
                             reply = game.add_player(data)
                         except Exception as err:
                             print("Error adding player: ", err)
+                            reply = False
 
                     # Indicates the player is ready, check to see if all players in this game are ready
                     elif data == 'start':
