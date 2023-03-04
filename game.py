@@ -2,6 +2,7 @@ from characters import Characters
 from deck import Deck
 from envelope import Envelope
 from player import Player
+from suggestion import Suggestion
 import random
 
 
@@ -21,6 +22,10 @@ class Game:
 
         self.players = []
         self.player_count = 0
+
+        self.pending_suggestion = False
+        self.waiting_on = None
+        self.suggestions = []
 
     def create_envelope(self) -> Envelope:
         """
@@ -170,3 +175,38 @@ class Game:
         for player in self.players:
             if player.get_character().value == name:
                 player.set_position(position)
+
+# TODO: Test code below this statement
+    def make_suggestion(self, player, character, weapon, room):
+        if not self.pending_suggestion:
+            self.suggestions.append(Suggestion(player, character, weapon, room))
+
+            for pl in self.players:
+                if pl.get_character().value == player:
+                    self.waiting_on = pl
+                    self.next_player()
+
+    def get_pending_suggestion(self):
+        self.check_suggestion_status()
+        return self.pending_suggestion
+
+    def get_waiting_on(self):
+        return self.waiting_on
+
+    def get_last_suggestion(self):
+        return self.suggestions[len(self.suggestions) - 1]
+
+    def check_suggestion_status(self):
+        self.pending_suggestion = self.suggestions[len(self.suggestions) - 1].get_status()
+
+    def next_player(self):
+        current = self.waiting_on
+        suggestion_player = self.suggestions[len(self.suggestions) - 1].get_player()
+
+        index = self.players.index(current)
+        self.waiting_on = self.players[(index + 1 % len(self.players))]
+
+        # Check if we made it around the table without getting solved
+        if self.waiting_on.get_character().value == suggestion_player:
+            self.suggestions[len(self.suggestions) - 1].set_result('Nothing to disprove')
+            self.check_suggestion_status()

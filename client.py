@@ -510,13 +510,163 @@ def roll_dice(board, cards, character, notes, player_positions, current_turn, ex
     return player_positions
 
 
-def make_suggestion(character, notes):
-    WIN.fill(constants.BACKGROUND)
+def draw_suggestion(character, notes):
     draw_notes(character.value, notes)
+    title = pygame.font.SysFont('freesansbold.ttf', 30)
+    font = pygame.font.SysFont('freesansbold.ttf', 20)
 
-    # TODO: Select a player to ask
+    WIN.blit(title.render('Select a character', True, constants.BLACK), (25, 75))
+    # Characters - Colonel Mustard
+    background = pygame.Rect(25, 100, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 102, constants.CHARACTER_X - 4, constants.CHARACTER_Y - 4)
+    pygame.draw.rect(WIN, constants.MUSTARD, rect)
+    WIN.blit(font.render('Colonel Mustard', True, constants.BLACK), (36, 110))
 
-    pygame.display.update()
+    # Miss Scarlet
+    background = pygame.Rect(175, 100, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(177, 102, constants.CHARACTER_X - 4, constants.CHARACTER_Y - 4)
+    pygame.draw.rect(WIN, constants.SCARLET, rect)
+    WIN.blit(font.render('Miss Scarlet', True, constants.BLACK), (198, 110))
+
+    # Mrs. White
+    background = pygame.Rect(325, 100, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(327, 102, constants.CHARACTER_X - 4, constants.CHARACTER_Y - 4)
+    pygame.draw.rect(WIN, constants.WHITE, rect)
+    WIN.blit(font.render('Mrs. White', True, constants.BLACK), (353, 110))
+
+    # Reverend Green
+    background = pygame.Rect(475, 100, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(477, 102, constants.CHARACTER_X - 4, constants.CHARACTER_Y - 4)
+    pygame.draw.rect(WIN, constants.GREEN, rect)
+    WIN.blit(font.render('Reverend Green', True, constants.BLACK), (485, 110))
+
+    # Mr. Peacock
+    background = pygame.Rect(25, 150, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 152, constants.CHARACTER_X - 4, constants.CHARACTER_Y - 4)
+    pygame.draw.rect(WIN, constants.PEACOCK, rect)
+    WIN.blit(font.render('Mr. Peacock', True, constants.BLACK), (50, 160))
+
+    # Professor Plum
+    background = pygame.Rect(175, 150, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(177, 152, constants.CHARACTER_X - 4, constants.CHARACTER_Y - 4)
+    pygame.draw.rect(WIN, constants.PLUM, rect)
+    WIN.blit(font.render('Professor Plum', True, constants.BLACK), (188, 160))
+
+    WIN.blit(title.render('Select a weapon', True, constants.BLACK), (25, 225))
+    # Weapons - Knife
+    background = pygame.Rect(25, 250, constants.WEAPON_X, constants.WEAPON_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 252, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
+    pygame.draw.rect(WIN, constants.WEAPONS, rect)
+    WIN.blit(font.render('Knife', True, constants.BLACK), (70, 260))
+
+    # Candle stick
+    background = pygame.Rect(175, 250, constants.WEAPON_X, constants.WEAPON_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(177, 252, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
+    pygame.draw.rect(WIN, constants.WEAPONS, rect)
+    WIN.blit(font.render('Candle stick', True, constants.BLACK), (196, 260))
+
+    # Revolver
+    background = pygame.Rect(325, 250, constants.WEAPON_X, constants.WEAPON_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(327, 252, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
+    pygame.draw.rect(WIN, constants.WEAPONS, rect)
+    WIN.blit(font.render('Revolver', True, constants.BLACK), (357, 260))
+
+    # Rope
+    background = pygame.Rect(475, 250, constants.WEAPON_X, constants.WEAPON_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(477, 252, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
+    pygame.draw.rect(WIN, constants.WEAPONS, rect)
+    WIN.blit(font.render('Rope', True, constants.BLACK), (517, 260))
+
+    # Lead Pipe
+    background = pygame.Rect(25, 300, constants.WEAPON_X, constants.WEAPON_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 302, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
+    pygame.draw.rect(WIN, constants.WEAPONS, rect)
+    WIN.blit(font.render('Lead Pipe', True, constants.BLACK), (53, 310))
+
+    # Wrench
+    background = pygame.Rect(175, 300, constants.CHARACTER_X, constants.CHARACTER_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(177, 302, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
+    pygame.draw.rect(WIN, constants.WEAPONS, rect)
+    WIN.blit(font.render('Wrench', True, constants.BLACK), (213, 310))
+
+
+def make_suggestion(character, notes, room):
+    char = None
+    weapon = None
+
+    font = pygame.font.SysFont('freesansbold.ttf', 26)
+
+    selection = False
+    while not selection:
+        WIN.fill(constants.BACKGROUND)
+        draw_suggestion(character, notes)
+
+        # Displays choices to the user
+        WIN.blit(font.render('Character: ', True, constants.BLACK), (25, 400))
+        if char:
+            WIN.blit(font.render(f'{char}', True, constants.BLACK), (120, 400))
+
+        WIN.blit(font.render('Weapon: ', True, constants.BLACK), (25, 450))
+        if weapon:
+            WIN.blit(font.render(f'{weapon}', True, constants.BLACK), (100, 450))
+
+        WIN.blit(font.render(f'Room: {room}', True, constants.BLACK), (25, 500))
+
+        if weapon and char:
+            # Confirmation button
+            background = pygame.Rect(400, 400, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y)
+            pygame.draw.rect(WIN, constants.BLACK, background)
+            rect = pygame.Rect(402, 402, constants.BUTTON_SIZE_X - 4, constants.BUTTON_SIZE_Y - 4)
+            pygame.draw.rect(WIN, constants.GREEN, rect)
+            WIN.blit(font.render('Confirm', True, constants.BLACK), (417, 407))
+
+        # Check for button clicks
+        ev = pygame.event.get()
+        for event in ev:
+            if event.type == pygame.MOUSEBUTTONUP:
+                x, y = pygame.mouse.get_pos()
+
+                # Characters - Colonel Mustard
+                if 25 <= x <= 25 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Colonel Mustard'
+                elif 175 <= x <= 175 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Miss Scarlet'
+                elif 325 <= x <= 325 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Mrs. White'
+                elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Reverend Green'
+                elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                    char = 'Mr. Peacock'
+                elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                    char = 'Professor Plum'
+                elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Knife'
+                elif 175 <= x <= 175 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Candle stick'
+                elif 325 <= x <= 325 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Revolver'
+                elif 475 <= x <= 475 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Rope'
+                elif 25 <= x <= 25 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                    weapon = 'Lead pipe'
+                elif 175 <= x <= 175 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                    weapon = 'Wrench'
+                elif 400 <= x <= 400 + constants.BUTTON_SIZE_X and 400 <= y <= 400 + constants.BUTTON_SIZE_Y:
+                    selection = True
+
+        pygame.display.update()
 
 
 def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
@@ -540,7 +690,7 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
             roll_dice(board, cards, character, notes, player_positions, current_turn, True)
 
         elif choice == 'Suggestion':
-            make_suggestion(character, notes)
+            make_suggestion(character, notes, room)
 
         elif choice == 'Accusation':
             print("accusation")
