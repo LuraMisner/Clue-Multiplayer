@@ -881,15 +881,125 @@ def draw_accusation(character, notes):
     pygame.draw.rect(WIN, constants.STUDY, rect)
     WIN.blit(font.render('Study', True, constants.BLACK), (65, 510))
 
-    pygame.display.update()
-    time.sleep(100)
-
 
 def handle_accusation(character, notes):
-    draw_accusation(character, notes)
+    char = None
+    weapon = None
+    room = None
+
+    confirm = False
+    flag = False
+
+    title = pygame.font.SysFont('freesansbold.ttf', 36)
+    font = pygame.font.SysFont('freesansbold.ttf', 24)
+
+    while not flag:
+        draw_accusation(character, notes)
+
+        # Section title
+        WIN.blit(title.render('Make an Accusation', True, constants.BLACK), (250, 40))
+
+        # Displays choices to the user
+        WIN.blit(font.render('Character: ', True, constants.BLACK), (25, 600))
+        if char:
+            WIN.blit(font.render(f'{char}', True, constants.BLACK), (120, 600))
+
+        WIN.blit(font.render('Weapon: ', True, constants.BLACK), (275, 600))
+        if weapon:
+            WIN.blit(font.render(f'{weapon}', True, constants.BLACK), (350, 600))
+
+        WIN.blit(font.render(f'Room: ', True, constants.BLACK), (480, 600))
+        if room:
+            WIN.blit(font.render(f'{room}', True, constants.BLACK), (540, 600))
+
+        # Confirm button
+        background = pygame.Rect(175, 650, constants.ROOM_X, constants.ROOM_Y)
+        pygame.draw.rect(WIN, constants.BLACK, background)
+        rect = pygame.Rect(177, 652, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+        pygame.draw.rect(WIN, constants.GREEN, rect)
+        WIN.blit(font.render('Confirm', True, constants.BLACK), (207, 658))
+
+        # Cancel button
+        background = pygame.Rect(325, 650, constants.ROOM_X, constants.ROOM_Y)
+        pygame.draw.rect(WIN, constants.BLACK, background)
+        rect = pygame.Rect(327, 652, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+        pygame.draw.rect(WIN, constants.SCARLET, rect)
+        WIN.blit(font.render('Cancel', True, constants.BLACK), (357, 658))
+
+        # Check for button clicks
+        ev = pygame.event.get()
+        for event in ev:
+            if event.type == pygame.MOUSEBUTTONUP:
+                x, y = pygame.mouse.get_pos()
+
+                # Characters - Colonel Mustard
+                if 25 <= x <= 25 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Colonel Mustard'
+                elif 175 <= x <= 175 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Miss Scarlet'
+                elif 325 <= x <= 325 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Mrs. White'
+                elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                    char = 'Reverend Green'
+                elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                    char = 'Mr. Peacock'
+                elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                    char = 'Professor Plum'
+                elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Knife'
+                elif 175 <= x <= 175 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Candle stick'
+                elif 325 <= x <= 325 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Revolver'
+                elif 475 <= x <= 475 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                    weapon = 'Rope'
+                elif 25 <= x <= 25 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                    weapon = 'Lead pipe'
+                elif 175 <= x <= 175 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                    weapon = 'Wrench'
+                elif 25 <= x <= 25 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                    room = 'Hall'
+                elif 175 <= x <= 175 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                    room = 'Lounge'
+                elif 325 <= x <= 325 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                    room = 'Dining Room'
+                elif 475 <= x <= 475 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                    room = 'Kitchen'
+                elif 25 <= x <= 25 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                    room = 'Ballroom'
+                elif 175 <= x <= 175 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                    room = 'Conservatory'
+                elif 325 <= x <= 325 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                    room = 'Billiard Room'
+                elif 475 <= x <= 475 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                    room = 'Library'
+                elif 25 <= x <= 25 + constants.ROOM_X and 500 <= y <= 500 + constants.ROOM_Y:
+                    room = 'Study'
+
+                # Confirm button
+                elif 175 <= x <= 175 + constants.ROOM_X and 650 <= y <= 650 + constants.ROOM_Y:
+                    if character and weapon and room:
+                        confirm = True
+                        flag = True
+
+                # Cancel button
+                elif 325 <= x <= 325 + constants.ROOM_X and 650 <= y <= 650 + constants.ROOM_Y:
+                    flag = True
+
+        pygame.display.update()
+
+    if flag and confirm:
+        # TODO: Send in the suggestion
+        pass
+    else:
+        # Cancel button was pressed
+        return 'Cancelled'
 
 
 def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
+    draw_screen(board, cards, character, notes, player_positions, current_turn)
+    pygame.display.update()
+
     populate_rooms(board, player_positions)
     room = board.what_room(player_positions[character.value])
 
@@ -914,7 +1024,9 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
             make_suggestion(character, notes, room)
 
         elif choice == 'Accusation':
-            handle_accusation(character, notes)
+            status = handle_accusation(character, notes)
+            if status and status == 'Cancelled':
+                return handle_turn(board, cards, character, notes, player_positions, current_turn)
 
         elif choice == 'Passage':
             if room == 'Kitchen':
