@@ -673,11 +673,11 @@ def make_suggestion(character, notes, room):
                 elif 175 <= x <= 175 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
                     char = 'Miss Scarlet'
                 elif 325 <= x <= 325 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
-                    char = 'Mrs. White'
+                    char = 'Mrs.White'
                 elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
                     char = 'Reverend Green'
                 elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
-                    char = 'Mr. Peacock'
+                    char = 'Mr.Peacock'
                 elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
                     char = 'Professor Plum'
                 elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
@@ -938,11 +938,11 @@ def handle_accusation(character, notes):
                 elif 175 <= x <= 175 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
                     char = 'Miss Scarlet'
                 elif 325 <= x <= 325 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
-                    char = 'Mrs. White'
+                    char = 'Mrs.White'
                 elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
                     char = 'Reverend Green'
                 elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
-                    char = 'Mr. Peacock'
+                    char = 'Mr.Peacock'
                 elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
                     char = 'Professor Plum'
                 elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
@@ -1053,15 +1053,49 @@ def draw_disqualification():
              (610, 450))
 
 
-def main():
-    selected = None
-    valid = False
-    ready = False
-    game_finished = False
-    previous_turn = 0
+def draw_end_screen(character):
+    winner = n.send('get_winner')
+    title = pygame.font.SysFont('freesansbold.ttf', 60)
+    run = True
 
+    while run:
+        WIN.fill(constants.BACKGROUND)
+
+        # Winner title
+        if winner == character.value:
+            WIN.blit(title.render('Congratulations! You Won!', True, constants.BLACK), (225, 100))
+        elif not winner:
+            WIN.blit(title.render('Everyone Disqualified! You Lose!', True, constants.BLACK), (250, 100))
+        else:
+            WIN.blit(title.render(f'{winner} Won!', True, constants.BLACK), (250, 100))
+
+        # Quit button
+        background = pygame.Rect(300, 300, 3 * constants.ROOM_X, 3 * constants.ROOM_Y)
+        pygame.draw.rect(WIN, constants.BLACK, background)
+        rect = pygame.Rect(302, 302, 3 * constants.ROOM_X - 4, 3 * constants.ROOM_Y - 4)
+        pygame.draw.rect(WIN, constants.GREEN, rect)
+        WIN.blit(title.render('Quit', True, constants.BLACK), (435, 325))
+
+        for event in pygame.event.get():
+            # Force quit
+            if event.type == pygame.QUIT:
+                run = False
+
+            # Quit button
+            if event.type == pygame.MOUSEBUTTONUP:
+                x, y = pygame.mouse.get_pos()
+
+                if 300 <= x <= 300 + 3*constants.ROOM_X and 300 <= y <= 300 + 3*constants.ROOM_Y:
+                    run = False
+
+        pygame.display.update()
+
+
+def main():
     # Make sure that the choice selected by the user is valid
     print("Selecting character...")
+    valid = False
+    selected = None
     while not valid:
         selected = select_character()
         valid = n.send(selected.value)
@@ -1069,6 +1103,7 @@ def main():
     print("Creating player...")
 
     # How to wait for the start
+    ready = False
     while not ready:
         show_ready()
         pygame.display.update()
@@ -1083,9 +1118,12 @@ def main():
     current_turn = n.send('whos_turn')
     player_positions = n.send('get_all_positions')
 
+    # Some flags to keep track of if the game is quit early, if the player gets disqualified, and turn number
     disqualified = False
+    run = True
+    previous_turn = 0
 
-    while not game_finished:
+    while run:
         # Ask whose turn it is
         turn_num = n.send('turn')
         notes = n.send(f'get_notes {selected.value}')
@@ -1120,15 +1158,24 @@ def main():
         if not disqualified:
             disqualified = n.send(f'check_disqualified {selected.value}')
 
+        # If the player has been disqualified, then add information to the screen to inform them
         if disqualified:
             draw_disqualification()
 
-        pygame.display.update()
-
+        # If the game has been won, then display the wining screen
         game_finished = n.send('game_finished')
         if game_finished:
-            # End game screen
-            pass
+            run = False
+            draw_end_screen(selected)
+
+        # If the game is quit early, then let the server that this player has quit
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                # TODO: Send a signal to the server that the game is being quit early
+                run = False
+
+        # Update the window
+        pygame.display.update()
 
 
 main()

@@ -240,3 +240,7 @@ class Game:
         for player in self.players:
             if player.get_character().value == character:
                 return player.get_disqualified()
+
+    def get_winner(self):
+        if self.won:
+            return self.who_won

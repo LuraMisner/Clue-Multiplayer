@@ -149,6 +149,9 @@ def threaded_client(connect, p, gameid):
                     elif data == 'game_finished':
                         reply = game.get_won()
 
+                    elif data == 'get_winner':
+                        reply = game.get_winner()
+
                     connect.sendall(pickle.dumps(reply))
             else:
                 break
