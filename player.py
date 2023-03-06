@@ -21,14 +21,13 @@ class Player:
         :param card: Card object
         :return: None
         """
-        value = card.get_value()
-        category = card.get_category()
-        if category == CardType.CHARACTER:
-            self.notes[0].append(value)
-        elif category == CardType.WEAPON:
-            self.notes[1].append(value)
-        elif category == CardType.PLACE:
-            self.notes[2].append(value)
+        if card in ['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mr.Peacock', 'Miss Scarlet', 'Mrs.White']:
+            self.notes[0].append(card)
+        elif card in ['Knife', 'Candle stick', 'Revolver', 'Rope', 'Lead pipe', 'Wrench']:
+            self.notes[1].append(card)
+        elif card in ['Hall', 'Lounge', 'Dining Room', 'Kitchen', 'Ballroom', 'Conservatory',
+                      'Billiard Room', 'Library', 'Study']:
+            self.notes[2].append(card)
         else:
             print("Error adding to notes: Unidentified")
 
@@ -39,7 +38,7 @@ class Player:
         :return: None
         """
         self.cards.append(card)
-        self.add_note(card)
+        self.add_note(card.value)
 
     def set_position(self, new_position):
         """

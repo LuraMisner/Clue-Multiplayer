@@ -1,9 +1,10 @@
-import time
 import constants
 import pygame
 import random
+import time
 from board import Board
 from characters import Characters
+from deck import Deck
 from network import Network
 from roomtype import RoomType
 
@@ -13,7 +14,7 @@ pygame.display.set_caption("Clue")
 pygame.init()
 
 n = Network()
-card_map = {}
+log = []
 
 
 def draw_screen(board, cards, character, notes, player_positions, current_turn):
@@ -99,32 +100,45 @@ def draw_notes(name, notes):
     :param notes: Information this player knows (arr length 3) Index 0: characters, Index 1: weapons, Index 2: locations
     :return: Nothing
     """
+    # TODO: Redo section so that all cards you know are in black, and the ones you dont in red
     header = pygame.font.SysFont('freesansbold.ttf', 32)
     title = pygame.font.SysFont('freesansbold.ttf', 24)
     font = pygame.font.SysFont('freesansbold.ttf', 20)
 
     WIN.blit(header.render(f"{name}'s notes", True, constants.BLACK), (675, 30))
+    all_cards = Deck.all_values()
 
     # Characters
-    WIN.blit(title.render("It can't be these characters: ", True, constants.BLACK), (675, 70))
-    for i, character in enumerate(notes[0]):
-        x = 680 + (i//4 * 125)
-        y = 95 + ((i % 4) * 20)
+    WIN.blit(title.render("Potential Murder Suspects", True, constants.BLACK), (675, 75))
+    for i, character in enumerate(all_cards[0]):
+        x = 675 + (i//3 * 125)
+        y = 100 + ((i % 3) * 20)
         WIN.blit(font.render(f"{character}", True, constants.BLACK), (x, y))
 
+        if character in notes[0]:
+            pygame.draw.line(WIN, constants.BLACK, (x, y+6), (x + len(character)*7, y+6), 2)
+
     # Weapons
-    WIN.blit(title.render("It can't be these weapons: ", True, constants.BLACK), (675, 200))
-    for i, weapon in enumerate(notes[1]):
-        x = 680 + (i//4 * 125)
-        y = 225 + ((i % 4) * 20)
+    WIN.blit(title.render("Potential Murder Weapons", True, constants.BLACK), (675, 200))
+    for i, weapon in enumerate(all_cards[1]):
+        x = 675 + (i//3 * 125)
+        y = 225 + ((i % 3) * 20)
+
         WIN.blit(font.render(f"{weapon}", True, constants.BLACK), (x, y))
 
+        if weapon in notes[1]:
+            pygame.draw.line(WIN, constants.BLACK, (x, y + 6), (x + len(weapon)*7, y + 6), 2)
+
     # Locations
-    WIN.blit(title.render("It can't be these locations: ", True, constants.BLACK), (675, 325))
-    for i, location in enumerate(notes[2]):
-        x = 680 + (i//4 * 125)
-        y = 350 + ((i % 4) * 20)
+    WIN.blit(title.render("Potential Murder Locations", True, constants.BLACK), (675, 325))
+    for i, location in enumerate(all_cards[2]):
+        x = 630 + (i//3 * 125)
+        y = 350 + ((i % 3) * 20)
+
         WIN.blit(font.render(f"{location}", True, constants.BLACK), (x, y))
+
+        if location in notes[2]:
+            pygame.draw.line(WIN, constants.BLACK, (x, y + 6), (x + len(location)*7, y + 6), 2)
 
 
 def draw_cards(cards):
@@ -145,7 +159,6 @@ def draw_cards(cards):
         rect = pygame.Rect(x, y, constants.CARD_SIZE_X, constants.CARD_SIZE_Y)
         pygame.draw.rect(WIN, constants.CARD, rect)
         card_value = card.get_value()
-        card_map[card_value] = (x, y)
 
         # Card text
         WIN.blit(font.render(f'{card_value}', True, constants.BLACK),
@@ -185,6 +198,7 @@ def select_character() -> Characters:
         # Title
         header = pygame.font.SysFont('freesansbold.ttf', 60)
         font = pygame.font.SysFont('freesansbold.ttf', 32)
+        font2 = pygame.font.SysFont('freesansbold.ttf', 26)
 
         WIN.blit(header.render('Select a Character', True, constants.BLACK), (300, 200))
 
@@ -197,20 +211,34 @@ def select_character() -> Characters:
 
             if ch == Characters.COLONEL_MUSTARD:
                 color = constants.MUSTARD
+                text1 = 'Colonel'
+                text2 = 'Mustard'
             elif ch == Characters.MISS_SCARLET:
                 color = constants.SCARLET
+                text1 = 'Miss'
+                text2 = 'Scarlet'
             elif ch == Characters.MR_PEACOCK:
                 color = constants.PEACOCK
+                text1 = 'Mr.'
+                text2 = 'Peacock'
             elif ch == Characters.MRS_WHITE:
                 color = constants.WHITE
+                text1 = 'Mrs.'
+                text2 = 'White'
             elif ch == Characters.PROFESSOR_PLUM:
                 color = constants.PLUM
+                text1 = 'Professor'
+                text2 = 'Plum'
             else:
                 # Reverend Green
                 color = constants.GREEN
+                text1 = 'Reverend'
+                text2 = 'Green'
 
             rect = pygame.Rect(x, y, constants.CHARACTER_SELECTION_SIZE, constants.CHARACTER_SELECTION_SIZE)
             pygame.draw.rect(WIN, color, rect)
+            WIN.blit(font2.render(f'{text1}', True, constants.BLACK), (x + 25 - (1.5 * len(text1)), 330))
+            WIN.blit(font2.render(f'{text2}', True, constants.BLACK), (x + 25 - (1.5 * len(text2)), 355))
 
         # Listen for clicks
         ev = pygame.event.get()
@@ -502,6 +530,7 @@ def roll_dice(board, cards, character, notes, player_positions, current_turn, ex
             # Sleep for a second to give the illusion of actually entering the room
             moves = 0
             player_positions[character.value] = give_room_position(board, player_positions[character.value])
+            # TODO: Allow them to also make a suggestion
 
         draw_screen(board, cards, character, notes, player_positions, current_turn)
         draw_moves(moves)
@@ -595,7 +624,7 @@ def draw_suggestion(character, notes):
     WIN.blit(font.render('Lead Pipe', True, constants.BLACK), (53, 310))
 
     # Wrench
-    background = pygame.Rect(175, 300, constants.CHARACTER_X, constants.CHARACTER_Y)
+    background = pygame.Rect(175, 300, constants.WEAPON_X, constants.WEAPON_Y)
     pygame.draw.rect(WIN, constants.BLACK, background)
     rect = pygame.Rect(177, 302, constants.WEAPON_X - 4, constants.WEAPON_Y - 4)
     pygame.draw.rect(WIN, constants.WEAPONS, rect)
@@ -664,15 +693,207 @@ def make_suggestion(character, notes, room):
                 elif 175 <= x <= 175 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
                     weapon = 'Wrench'
                 elif 400 <= x <= 400 + constants.BUTTON_SIZE_X and 400 <= y <= 400 + constants.BUTTON_SIZE_Y:
-                    selection = True
+                    if weapon and char:
+                        selection = True
 
         pygame.display.update()
+
+    n.send(f'make_suggestion {character.value},{char},{weapon},{room}')
+    ready = n.send('check_suggestion_status')
+    title = pygame.font.SysFont('freesansbold.ttf', 30)
+
+    while ready:
+        c = n.send('waiting_on')
+        WIN.blit(title.render(f'Waiting on {c.get_character().value} to respond', True, constants.BLACK), (100, 700))
+        pygame.display.update()
+        time.sleep(1)
+        ready = n.send('check_suggestion_status')
+
+    # Get response
+    c = n.send('waiting_on')
+    response = n.send('get_suggestion_response')
+    WIN.blit(title.render(f'{c.get_character().value} shows you {response}', True, constants.BLACK), (100, 650))
+
+    # Add this to players notes
+    if response != 'No one could disprove':
+        n.send(f'add_note {character.value},{response}')
+
+    log.append(f'{c.get_character().value} shows you {response}')
+
+
+def draw_related_cards(related_cards) -> {str: (int, int)}:
+    title = pygame.font.SysFont('freesansbold.ttf', 40)
+    font = pygame.font.SysFont('freesansbold.ttf', 26)
+    WIN.blit(title.render('Related Cards: Pick one to show', True, constants.BLACK), (300, 100))
+    related_map = {}
+
+    if len(related_cards) > 0:
+        for i, card in enumerate(related_cards):
+            x = 100 + (i * 200)
+            y = 175
+
+            # Card background
+            rect = pygame.Rect(x, y, 2 * constants.CARD_SIZE_X,  2 * constants.CARD_SIZE_Y)
+            pygame.draw.rect(WIN, constants.BLACK, rect)
+            rect = pygame.Rect(x+2, y+2, (2 * constants.CARD_SIZE_X) - 4, (2 * constants.CARD_SIZE_Y) - 4)
+            pygame.draw.rect(WIN, constants.CARD, rect)
+
+            # Card text
+            card_value = card.get_value()
+            related_map[card_value] = (x, y)
+            WIN.blit(font.render(f'{card_value}', True, constants.BLACK),
+                     (x + 4 * (20 - len(card_value)), y + 13))
+
+    else:
+        WIN.blit(title.render('You have no related cards to show', True, constants.BLACK), (300, 200))
+
+    return related_map
+
+
+def respond_suggestion(cards):
+    suggestion = n.send('get_last_suggestion')
+    font = pygame.font.SysFont('freesansbold.ttf', 28)
+
+    related_cards = []
+    for card in cards:
+        if card.get_category().value == 'CHARACTER':
+            if card.get_value() == suggestion.get_character():
+                related_cards.append(card)
+        elif card.get_category().value == 'WEAPON':
+            if card.get_value() == suggestion.get_weapon():
+                related_cards.append(card)
+        elif card.get_category().value == 'PLACE':
+            if card.get_value() == suggestion.get_room():
+                related_cards.append(card)
+
+    confirm = False
+    card_choice = None
+    while not confirm:
+        WIN.fill(constants.BACKGROUND)
+        related_map = draw_related_cards(related_cards)
+        WIN.blit(font.render(f'You have selected: {card_choice}', True, constants.BLACK), (50, 322))
+
+        # Listen for clicks
+        ev = pygame.event.get()
+        for event in ev:
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+
+                # Find out if the click maps to a character
+                for key in related_map.keys():
+                    x, y = pos
+                    x2, y2 = related_map[key]
+
+                    if x2 < x < x2 + (2 * constants.CARD_SIZE_X) and \
+                            y2 < y < y2 + (2 * constants.CARD_SIZE_Y):
+                        card_choice = key
+
+                # Clicking confirmed
+                x, y = pos
+                if 400 <= x <= 400 + 2*constants.BUTTON_SIZE_X and 300 <= y <= 300 + 2*constants.BUTTON_SIZE_Y:
+                    confirm = True
+
+        if len(related_cards) == 0 or card_choice:
+            # Confirmation button
+            background = pygame.Rect(400, 300, 2 * constants.BUTTON_SIZE_X, 2 * constants.BUTTON_SIZE_Y)
+            pygame.draw.rect(WIN, constants.BLACK, background)
+            rect = pygame.Rect(402, 302, 2 * constants.BUTTON_SIZE_X - 4, 2 * constants.BUTTON_SIZE_Y - 4)
+            pygame.draw.rect(WIN, constants.GREEN, rect)
+            WIN.blit(font.render('Confirm', True, constants.BLACK), (460, 322))
+
+        pygame.display.update()
+
+    if card_choice:
+        n.send(f'answer_suggestion {card_choice}')
+    else:
+        n.send('next_player')
+
+
+def draw_accusation(character, notes):
+    WIN.fill(constants.BACKGROUND)
+    draw_suggestion(character, notes)
+
+    title = pygame.font.SysFont('freesansbold.ttf', 30)
+    font = pygame.font.SysFont('freesansbold.ttf', 20)
+
+    # For accusations, we also include the rooms to choose from
+    WIN.blit(title.render('Select a room', True, constants.BLACK), (25, 375))
+    # Rooms - Hall
+    background = pygame.Rect(25, 400, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 402, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.HALL, rect)
+    WIN.blit(font.render('Hall', True, constants.BLACK), (70, 410))
+
+    # Lounge
+    background = pygame.Rect(175, 400, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(177, 402, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.LOUNGE, rect)
+    WIN.blit(font.render('Lounge', True, constants.BLACK), (215, 410))
+
+    # Dining Room
+    background = pygame.Rect(325, 400, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(327, 402, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.DINING, rect)
+    WIN.blit(font.render('Dining Room', True, constants.BLACK), (345, 410))
+
+    # Kitchen
+    background = pygame.Rect(475, 400, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(477, 402, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.KITCHEN, rect)
+    WIN.blit(font.render('Kitchen', True, constants.BLACK), (514, 410))
+
+    # Ballroom
+    background = pygame.Rect(25, 450, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 452, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.BALL, rect)
+    WIN.blit(font.render('Ballroom', True, constants.BLACK), (57, 460))
+
+    # Conservatory
+    background = pygame.Rect(175, 450, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(177, 452, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.CONSERVATORY, rect)
+    WIN.blit(font.render('Conservatory', True, constants.BLACK), (196, 460))
+
+    # Billiard Room
+    background = pygame.Rect(325, 450, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(327, 452, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.BILLIARDS, rect)
+    WIN.blit(font.render('Billiard Room', True, constants.BLACK), (345, 460))
+
+    # Library
+    background = pygame.Rect(475, 450, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(477, 452, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.LIBRARY, rect)
+    WIN.blit(font.render('Library', True, constants.BLACK), (517, 460))
+
+    # Study
+    background = pygame.Rect(25, 500, constants.ROOM_X, constants.ROOM_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(27, 502, constants.ROOM_X - 4, constants.ROOM_Y - 4)
+    pygame.draw.rect(WIN, constants.STUDY, rect)
+    WIN.blit(font.render('Study', True, constants.BLACK), (65, 510))
+
+    pygame.display.update()
+    time.sleep(100)
+
+
+def handle_accusation(character, notes):
+    draw_accusation(character, notes)
 
 
 def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
     populate_rooms(board, player_positions)
     room = board.what_room(player_positions[character.value])
 
+    # TODO: If you enter a room you can also make a suggestion when you pick rolling dice
     if room not in ['Hallway', 'OFB', 'Start']:
         # Allow them to choose to move, make a suggestion, use a passageway, or make an accusation
         choice = draw_buttons(room)
@@ -693,7 +914,7 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
             make_suggestion(character, notes, room)
 
         elif choice == 'Accusation':
-            print("accusation")
+            handle_accusation(character, notes)
 
         elif choice == 'Passage':
             if room == 'Kitchen':
@@ -740,15 +961,13 @@ def main():
     print("Getting cards...")
     cards = n.send(f'get_cards {selected.value}')
 
-    print("Getting notes...")
-    notes = n.send(f'get_notes {selected.value}')
-
     current_turn = n.send('whos_turn')
     player_positions = n.send('get_all_positions')
 
     while not game_finished:
         # Ask whose turn it is
         turn_num = n.send('turn')
+        notes = n.send(f'get_notes {selected.value}')
 
         # If a player has moved, then get the positions of all players
         if turn_num != previous_turn:
@@ -762,12 +981,21 @@ def main():
         # Handle our turn
         if current_turn.get_character().value == selected.value:
             player_positions = handle_turn(board, cards, selected, notes, player_positions, current_turn)
+            draw_screen(board, cards, selected, notes, player_positions, current_turn)
             n.send(f'update_position {selected.value},{player_positions[selected.value]}')
             n.send('turn_done')
 
+        # If it's not our turn, check for a suggestion
+        if not current_turn.get_character().value == selected.value:
+            waiting_on = n.send('waiting_on')
+            pending_suggestion = n.send('check_suggestion_status')
+
+            if pending_suggestion is True and (waiting_on and waiting_on.get_character() == selected):
+                print("You have a suggestion to respond to...")
+                respond_suggestion(cards)
+
         pygame.display.update()
         game_finished = n.send('game_finished')
-        time.sleep(1)
 
 
 main()

@@ -194,19 +194,35 @@ class Game:
         return self.waiting_on
 
     def get_last_suggestion(self):
-        return self.suggestions[len(self.suggestions) - 1]
+        if len(self.suggestions) > 0:
+            return self.suggestions[len(self.suggestions) - 1]
 
     def check_suggestion_status(self):
-        self.pending_suggestion = self.suggestions[len(self.suggestions) - 1].get_status()
+        if len(self.suggestions) > 0:
+            if self.get_last_suggestion().get_solved():
+                self.pending_suggestion = False
+            else:
+                self.pending_suggestion = True
 
     def next_player(self):
         current = self.waiting_on
-        suggestion_player = self.suggestions[len(self.suggestions) - 1].get_player()
+        suggestion_player = self.get_last_suggestion().get_player()
 
         index = self.players.index(current)
-        self.waiting_on = self.players[(index + 1 % len(self.players))]
+        self.waiting_on = self.players[((index + 1) % len(self.players))]
 
         # Check if we made it around the table without getting solved
         if self.waiting_on.get_character().value == suggestion_player:
-            self.suggestions[len(self.suggestions) - 1].set_result('Nothing to disprove')
+            self.get_last_suggestion().set_result('No one could disprove')
             self.check_suggestion_status()
+
+    def answer_suggestion(self, data):
+        self.get_last_suggestion().set_result(data)
+
+    def get_suggestion_response(self):
+        return self.get_last_suggestion().get_result()
+
+    def add_note(self, character, note):
+        for player in self.players:
+            if player.get_character().value == character:
+                player.add_note(note)

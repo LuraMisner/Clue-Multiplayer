@@ -16,24 +16,25 @@ except socket.error as e:
     print(str(e))
 
 # Listen for connections ( Number indicates maximum amount of connections )
-s.listen(2)
+s.listen(6)
 print("Waiting for a connection, Server Started")
 
 games = {}
 ready = {}
 idCount = 0
+gameId = 0
 
 
-def threaded_client(conn, p, gameId):
-    conn.send(str.encode(str(p)))
+def threaded_client(connect, p, gameid):
+    connect.send(str.encode(str(p)))
 
     reply = ""
     while True:
         try:
-            data = conn.recv(2048).decode()
+            data = connect.recv(2048).decode()
 
             if gameId in games:
-                game = games[gameId]
+                game = games[gameid]
 
                 if not data:
                     break
@@ -54,16 +55,16 @@ def threaded_client(conn, p, gameId):
 
                     # Indicates the player is ready, check to see if all players in this game are ready
                     elif data == 'start':
-                        ready[gameId][p] = True
-                        reply = all(ready[gameId])
+                        ready[gameid][p] = True
+                        reply = all(ready[gameid])
                         if reply and not game.get_split():
                             game.split_cards()
 
                     # Tells client how many players are ready out of the players in this game
                     elif data == 'num_ready':
-                        reply = [len(ready[gameId])]
+                        reply = [len(ready[gameid])]
                         num_ready = 0
-                        for player in ready[gameId]:
+                        for player in ready[gameid]:
                             if player:
                                 num_ready += 1
                         reply.append(num_ready)
@@ -96,6 +97,39 @@ def threaded_client(conn, p, gameId):
                     elif data == 'turn':
                         reply = game.get_turn()
 
+                    # Making a suggestion
+                    elif data[:15] == 'make_suggestion':
+                        player, character, weapon, room = data[16:].split(',')
+                        game.make_suggestion(player, character, weapon, room)
+
+                    # Check if the last suggestion has been completed
+                    elif data == 'check_suggestion_status':
+                        reply = game.get_pending_suggestion()
+
+                    # Client is submitting an answer to the question
+                    elif data[:17] == 'answer_suggestion':
+                        game.answer_suggestion(data[18:])
+
+                    # Check whose turn it is to answer a suggestion
+                    elif data == 'waiting_on':
+                        reply = game.get_waiting_on()
+
+                    # Wait on the next player
+                    elif data == 'next_player':
+                        game.next_player()
+
+                    # Get the response of a suggestion
+                    elif data == 'get_suggestion_response':
+                        reply = game.get_suggestion_response()
+
+                    # Get the last suggestion
+                    elif data == 'get_last_suggestion':
+                        reply = game.get_last_suggestion()
+
+                    elif data[:8] == 'add_note':
+                        character, note = data[9:].split(',')
+                        game.add_note(character, note)
+
                     # Updates a player position
                     elif data[:15] == 'update_position':
                         character, position = data[16:].split(',')
@@ -105,7 +139,7 @@ def threaded_client(conn, p, gameId):
                     elif data == 'game_finished':
                         reply = game.get_won()
 
-                    conn.sendall(pickle.dumps(reply))
+                    connect.sendall(pickle.dumps(reply))
             else:
                 break
         except Exception as er:
@@ -113,7 +147,7 @@ def threaded_client(conn, p, gameId):
             break
 
     print("Lost connection")
-    conn.close()
+    connect.close()
 
 
 while True:
@@ -122,14 +156,18 @@ while True:
     print("Connected to: ", addr)
 
     idCount += 1
-    gameId = (idCount - 1) // 2
 
-    # TODO: If the game that gameID points to has started, move to a different game
+    # If the game is full or already started, then move to a different game
+    if gameId in games:
+        if all(ready[gameId]) or len(ready[gameId]) == 6:
+            gameId += 1
+
     # If the game does not exist, make a new one
     if gameId not in games:
         print("Creating a new game...")
         games[gameId] = Game(gameId)
         ready[gameId] = []
+        idCount = 0
 
     ready[gameId].append(False)
-    start_new_thread(threaded_client, (conn, idCount-1, gameId))
+    start_new_thread(threaded_client, (conn, idCount, gameId))
