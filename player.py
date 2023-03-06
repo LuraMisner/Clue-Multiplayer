@@ -1,4 +1,3 @@
-from card import CardType
 from characters import Characters
 import constants
 
@@ -14,6 +13,7 @@ class Player:
         # Index 0: Characters, Index 1: Weapons, Index 2: Places
         self.notes = [[], [], []]
         self.position = constants.START_POSITIONS[character.value]
+        self.disqualified = False
 
     def add_note(self, card):
         """
@@ -90,3 +90,9 @@ class Player:
         for location in self.notes[2]:
             print(location)
         print("----------- END NOTES ---------------")
+
+    def disqualify(self):
+        self.disqualified = True
+
+    def get_disqualified(self):
+        return self.disqualified

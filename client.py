@@ -989,8 +989,8 @@ def handle_accusation(character, notes):
         pygame.display.update()
 
     if flag and confirm:
-        # TODO: Send in the suggestion
-        pass
+        # Send the accusation to the server
+        n.send(f'make_accusation {character.value},{char},{weapon},{room}')
     else:
         # Cancel button was pressed
         return 'Cancelled'
@@ -1046,6 +1046,13 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
     return player_positions
 
 
+def draw_disqualification():
+    font = pygame.font.SysFont('freesansbold.ttf', 20)
+    WIN.blit(font.render('You have been disqualified', True, constants.SCARLET), (700, 430))
+    WIN.blit(font.render('You have lost your turn, but still must answer suggestions', True, constants.BLACK),
+             (610, 450))
+
+
 def main():
     selected = None
     valid = False
@@ -1076,6 +1083,8 @@ def main():
     current_turn = n.send('whos_turn')
     player_positions = n.send('get_all_positions')
 
+    disqualified = False
+
     while not game_finished:
         # Ask whose turn it is
         turn_num = n.send('turn')
@@ -1092,9 +1101,10 @@ def main():
 
         # Handle our turn
         if current_turn.get_character().value == selected.value:
-            player_positions = handle_turn(board, cards, selected, notes, player_positions, current_turn)
-            draw_screen(board, cards, selected, notes, player_positions, current_turn)
-            n.send(f'update_position {selected.value},{player_positions[selected.value]}')
+            if not disqualified:
+                player_positions = handle_turn(board, cards, selected, notes, player_positions, current_turn)
+                draw_screen(board, cards, selected, notes, player_positions, current_turn)
+                n.send(f'update_position {selected.value},{player_positions[selected.value]}')
             n.send('turn_done')
 
         # If it's not our turn, check for a suggestion
@@ -1106,8 +1116,19 @@ def main():
                 print("You have a suggestion to respond to...")
                 respond_suggestion(cards)
 
+        # Check if our player is disqualified from the match
+        if not disqualified:
+            disqualified = n.send(f'check_disqualified {selected.value}')
+
+        if disqualified:
+            draw_disqualification()
+
         pygame.display.update()
+
         game_finished = n.send('game_finished')
+        if game_finished:
+            # End game screen
+            pass
 
 
 main()

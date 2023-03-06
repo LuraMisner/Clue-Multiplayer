@@ -11,6 +11,7 @@ class Game:
         self.id = gid
         self.turn = 0
         self.won = False
+        self.who_won = None
         self.split = False
 
         self.deck = Deck()
@@ -79,14 +80,23 @@ class Game:
         print("Invalid Character Selection")
         return False
 
-    def win_condition(self, character, weapon, room):
+    def make_accusation(self, player, character, weapon, room):
         """
+        :param player: String representing the players name
         :param character: String representing characters name
         :param weapon: String representing weapons name
         :param room: String representing a room
         """
+
+        # If they are right, then they won the game
         if self.envelop.check_guess(character, weapon, room):
             self.won = True
+            self.who_won = player
+        else:
+            # If a wrong suggestion is made, then they must be disqualified
+            for p in self.players:
+                if p.get_character().value == player:
+                    p.disqualify()
 
     def get_id(self) -> int:
         """
@@ -176,7 +186,6 @@ class Game:
             if player.get_character().value == name:
                 player.set_position(position)
 
-# TODO: Test code below this statement
     def make_suggestion(self, player, character, weapon, room):
         if not self.pending_suggestion:
             self.suggestions.append(Suggestion(player, character, weapon, room))
@@ -226,3 +235,8 @@ class Game:
         for player in self.players:
             if player.get_character().value == character:
                 player.add_note(note)
+
+    def get_player_disqualification(self, character):
+        for player in self.players:
+            if player.get_character().value == character:
+                return player.get_disqualified()

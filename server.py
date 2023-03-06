@@ -86,6 +86,11 @@ def threaded_client(connect, p, gameid):
                     elif data == 'whos_turn':
                         reply = game.whos_turn()
 
+                    # Check if a player is disqualified
+                    elif data[:18] == 'check_disqualified':
+                        character = data[19:]
+                        reply = game.get_player_disqualification(character)
+
                     # Get the positions of all players
                     elif data == 'get_all_positions':
                         reply = game.get_all_player_locations()
@@ -101,6 +106,11 @@ def threaded_client(connect, p, gameid):
                     elif data[:15] == 'make_suggestion':
                         player, character, weapon, room = data[16:].split(',')
                         game.make_suggestion(player, character, weapon, room)
+
+                    # Making an accusation
+                    elif data[:15] == 'make_accusation':
+                        player, character, weapon, room = data[16:].split(',')
+                        game.make_accusation(player, character, weapon, room)
 
                     # Check if the last suggestion has been completed
                     elif data == 'check_suggestion_status':
