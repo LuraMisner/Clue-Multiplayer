@@ -27,6 +27,9 @@ WEAPON_Y = 30
 ROOM_X = 125
 ROOM_Y = 30
 
+LOG_X = 350
+LOG_Y = 125
+
 # Colors
 BACKGROUND = (192, 192, 192)
 BLACK = (0, 0, 0)
@@ -35,7 +38,7 @@ SUGGESTION = (134, 227, 68)
 ROLL_DICE = (68, 172, 242)
 PASSAGE = (156, 93, 56)
 WEAPONS = (232, 184, 51)
-
+LOG = (72, 94, 97)
 
 # Character Colors
 WHITE = (255, 255, 255)

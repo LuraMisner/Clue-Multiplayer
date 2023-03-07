@@ -21,12 +21,14 @@ print("Waiting for a connection, Server Started")
 
 games = {}
 ready = {}
+log = {}
 idCount = 0
 gameId = 0
 
 
 def threaded_client(connect, p, gameid):
     connect.send(str.encode(str(p)))
+    character = None
 
     reply = ""
     while True:
@@ -39,6 +41,8 @@ def threaded_client(connect, p, gameid):
                 if not data:
                     break
                 else:
+                    print(log[gameid])
+
                     # Character selection
                     if data == 'character_selection':
                         reply = game.available_characters
@@ -49,6 +53,7 @@ def threaded_client(connect, p, gameid):
                         # Make the player
                         try:
                             reply = game.add_player(data)
+                            character = data
                         except Exception as err:
                             print("Error adding player: ", err)
                             reply = False
@@ -58,6 +63,7 @@ def threaded_client(connect, p, gameid):
                         ready[gameid][p] = True
                         reply = all(ready[gameid])
                         if reply and not game.get_split():
+                            log[gameid].append('Game started, cards distributed')
                             game.split_cards()
 
                     # Tells client how many players are ready out of the players in this game
@@ -70,16 +76,14 @@ def threaded_client(connect, p, gameid):
                         reply.append(num_ready)
 
                     # Shows the client which cards they have been delt
-                    elif data[:9] == 'get_cards':
-                        character = data[10:]
+                    elif data == 'get_cards':
                         reply = game.get_player_cards(character)
 
                         if not reply:
                             print(f"Error getting {character}'s cards")
 
                     # Shows the clients notes (differs from cards once they have learned information from other players)
-                    elif data[:9] == 'get_notes':
-                        character = data[10:]
+                    elif data == 'get_notes':
                         reply = game.get_player_notes(character)
 
                     # Check whose turn it is
@@ -87,9 +91,10 @@ def threaded_client(connect, p, gameid):
                         reply = game.whos_turn()
 
                     # Check if a player is disqualified
-                    elif data[:18] == 'check_disqualified':
-                        character = data[19:]
+                    elif data == 'check_disqualified':
                         reply = game.get_player_disqualification(character)
+                        if reply:
+                            log[gameid].append(f'{character} has been disqualified')
 
                     # Get the positions of all players
                     elif data == 'get_all_positions':
@@ -99,18 +104,23 @@ def threaded_client(connect, p, gameid):
                     elif data == 'turn_done':
                         game.increment_turn()
 
+                    # Gets whose turn it is
                     elif data == 'turn':
                         reply = game.get_turn()
 
                     # Making a suggestion
                     elif data[:15] == 'make_suggestion':
-                        player, character, weapon, room = data[16:].split(',')
-                        game.make_suggestion(player, character, weapon, room)
+                        char, weapon, room = data[16:].split(',')
+                        game.make_suggestion(character, char, weapon, room)
+
+                        log[gameid].append(f'{character} suggests {char}, {weapon}, {room}')
 
                     # Making an accusation
                     elif data[:15] == 'make_accusation':
-                        player, character, weapon, room = data[16:].split(',')
-                        game.make_accusation(player, character, weapon, room)
+                        char, weapon, room = data[16:].split(',')
+                        game.make_accusation(character, char, weapon, room)
+
+                        log[gameid].append(f'{character} accuses {char}, {weapon}, {room}')
 
                     # Check if the last suggestion has been completed
                     elif data == 'check_suggestion_status':
@@ -120,6 +130,8 @@ def threaded_client(connect, p, gameid):
                     elif data[:17] == 'answer_suggestion':
                         game.answer_suggestion(data[18:])
 
+                        log[gameid].append(f'{character} shows {game.get_suggestion_player()} a card')
+
                     # Check whose turn it is to answer a suggestion
                     elif data == 'waiting_on':
                         reply = game.get_waiting_on()
@@ -127,6 +139,8 @@ def threaded_client(connect, p, gameid):
                     # Wait on the next player
                     elif data == 'next_player':
                         game.next_player()
+
+                        log[gameid].append(f'{character} has no cards to show')
 
                     # Get the response of a suggestion
                     elif data == 'get_suggestion_response':
@@ -136,25 +150,36 @@ def threaded_client(connect, p, gameid):
                     elif data == 'get_last_suggestion':
                         reply = game.get_last_suggestion()
 
+                    # Adds information to our notes section
                     elif data[:8] == 'add_note':
-                        character, note = data[9:].split(',')
+                        note = data[9:]
                         game.add_note(character, note)
 
                     # Updates a player position
                     elif data[:15] == 'update_position':
-                        character, position = data[16:].split(',')
+                        position = data[16:]
                         game.update_player_position(character, int(position))
 
                     # Check if the game has finished
                     elif data == 'game_finished':
                         reply = game.get_won()
 
+                    # Gets the winner
                     elif data == 'get_winner':
                         reply = game.get_winner()
 
-                    elif data[:10] == 'early_quit':
-                        character = data[11:]
+                    # Gets data from the log (last 10 items)
+                    elif data == 'get_log':
+                        if len(log[gameid]) <= 10:
+                            reply = log[gameid]
+                        else:
+                            reply = log[gameid][len(log[gameid]) - 10:]
+
+                    # Handles players closing the game early
+                    elif data == 'early_quit':
                         game.early_quit(character)
+
+                        log[gameid].append(f'{character} has been disconnected. Cards distributed')
 
                     connect.sendall(pickle.dumps(reply))
             else:
@@ -184,6 +209,7 @@ while True:
         print("Creating a new game...")
         games[gameId] = Game(gameId)
         ready[gameId] = []
+        log[gameId] = []
         idCount = 0
 
     ready[gameId].append(False)

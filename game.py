@@ -239,6 +239,9 @@ class Game:
     def get_suggestion_response(self):
         return self.get_last_suggestion().get_result()
 
+    def get_suggestion_player(self):
+        return self.get_last_suggestion().get_player()
+
     def add_note(self, character, note):
         for player in self.players:
             if player.get_character().value == character:

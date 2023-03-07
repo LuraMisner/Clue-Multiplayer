@@ -33,6 +33,37 @@ def draw_screen(board, cards, character, notes, player_positions, current_turn):
     draw_cards(cards)
     draw_notes(character.value, notes)
     draw_turn(current_turn)
+    draw_log()
+
+
+def draw_log():
+    add_to_log()
+
+    global log
+    if len(log) <= 6:
+        these_logs = log
+    else:
+        these_logs = log[len(log) - 6:]
+
+    font = pygame.font.SysFont('freesansbold.ttf', 16)
+    font2 = pygame.font.SysFont('freesansbold.ttf', 14)
+    title = pygame.font.SysFont('freesansbold.ttf', 22)
+
+    WIN.blit(title.render('LOG', True, constants.BLACK), (775, 550))
+
+    background = pygame.Rect(630, 565, constants.LOG_X, constants.LOG_Y)
+    pygame.draw.rect(WIN, constants.BLACK, background)
+    rect = pygame.Rect(632, 567, constants.LOG_X - 4, constants.LOG_Y - 4)
+    pygame.draw.rect(WIN, constants.LOG, rect)
+
+    for i, line in enumerate(these_logs):
+        x = 636
+        y = 573 + (i * 20)
+
+        if len(line) <= 50:
+            WIN.blit(font.render(line, True, constants.WHITE), (x, y))
+        else:
+            WIN.blit(font2.render(line, True, constants.WHITE), (x, y))
 
 
 def draw_players(player_positions, board):
@@ -748,7 +779,7 @@ def make_suggestion(character, notes, room):
         pygame.display.update()
 
     if confirm:
-        n.send(f'make_suggestion {character.value},{char},{weapon},{room}')
+        n.send(f'make_suggestion {char},{weapon},{room}')
         ready = n.send('check_suggestion_status')
         title = pygame.font.SysFont('freesansbold.ttf', 30)
 
@@ -766,10 +797,13 @@ def make_suggestion(character, notes, room):
         WIN.blit(title.render(f'{c.get_character().value} shows you {response}', True, constants.BLACK), (100, 650))
 
         # Add this to players notes
-        if response != 'No one could disprove':
-            n.send(f'add_note {character.value},{response}')
+        add_to_log()
 
-        log.append(f'{c.get_character().value} shows you {response}')
+        if response != 'No one could disprove':
+            n.send(f'add_note {response}')
+            log.append(f'{c.get_character().value} shows you {response}')
+        else:
+            log.append(response)
 
     # Cancel button was pressed
     else:
@@ -1052,7 +1086,7 @@ def handle_accusation(character, notes):
 
     if flag and confirm:
         # Send the accusation to the server
-        n.send(f'make_accusation {character.value},{char},{weapon},{room}')
+        n.send(f'make_accusation {char},{weapon},{room}')
     else:
         # Cancel button was pressed
         return 'Cancelled'
@@ -1154,8 +1188,16 @@ def draw_end_screen(character):
         pygame.display.update()
 
 
+def add_to_log():
+    global log
+    server_log = n.send('get_log')
+
+    for item in server_log:
+        if item not in log:
+            log.append(item)
+
+
 def main():
-    # TODO: Log for player?
     # Make sure that the choice selected by the user is valid
     print("Selecting character...")
     valid = False
@@ -1187,8 +1229,8 @@ def main():
     while run:
         # Ask whose turn it is
         turn_num = n.send('turn')
-        cards = n.send(f'get_cards {selected.value}')
-        notes = n.send(f'get_notes {selected.value}')
+        cards = n.send(f'get_cards')
+        notes = n.send(f'get_notes')
 
         # If a player has moved, then get the positions of all players
         if turn_num != previous_turn:
@@ -1204,7 +1246,7 @@ def main():
             if not disqualified:
                 player_positions = handle_turn(board, cards, selected, notes, player_positions, current_turn)
                 draw_screen(board, cards, selected, notes, player_positions, current_turn)
-                n.send(f'update_position {selected.value},{player_positions[selected.value]}')
+                n.send(f'update_position {player_positions[selected.value]}')
             n.send('turn_done')
 
         # If it's not our turn, check for a suggestion
@@ -1218,7 +1260,7 @@ def main():
 
         # Check if our player is disqualified from the match
         if not disqualified:
-            disqualified = n.send(f'check_disqualified {selected.value}')
+            disqualified = n.send(f'check_disqualified')
 
         # If the player has been disqualified, then add information to the screen to inform them
         if disqualified:
@@ -1234,7 +1276,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # Send a signal to the server that the game is being quit early
-                n.send(f'early_quit {selected.value}')
+                n.send(f'early_quit')
                 run = False
 
         # Update the window
