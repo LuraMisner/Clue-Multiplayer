@@ -98,6 +98,14 @@ class Game:
                 if p.get_character().value == player:
                     p.disqualify()
 
+            # Check if all players have been disqualified, if so, then they lose
+            disqualified = []
+            for p in self.players:
+                disqualified.append(p.get_disqualified())
+
+            if all(disqualified):
+                self.won = True
+
     def get_id(self) -> int:
         """
         :return: Integer of game ID
@@ -244,3 +252,22 @@ class Game:
     def get_winner(self):
         if self.won:
             return self.who_won
+
+    def early_quit(self, player):
+        quitter = None
+        index = 0
+        for ind, p in enumerate(self.players):
+            if p.get_character().value == player:
+                quitter = p
+                index = ind
+
+        if quitter:
+            # Remove them from the list of players, and give other players their cards
+            self.players.pop(index)
+            self.player_count -= 1
+
+            players_cards = quitter.get_cards()
+            i = 0
+            while players_cards:
+                self.players[i % len(self.players)].add_card(players_cards.pop())
+                i += 1

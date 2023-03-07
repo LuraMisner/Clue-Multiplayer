@@ -1128,7 +1128,7 @@ def draw_end_screen(character):
         if winner == character.value:
             WIN.blit(title.render('Congratulations! You Won!', True, constants.BLACK), (225, 100))
         elif not winner:
-            WIN.blit(title.render('Everyone Disqualified! You Lose!', True, constants.BLACK), (250, 100))
+            WIN.blit(title.render('Everyone Disqualified! You Lose!', True, constants.BLACK), (200, 100))
         else:
             WIN.blit(title.render(f'{winner} Won!', True, constants.BLACK), (275 + 5 * (18 - len(winner)), 100))
 
@@ -1155,7 +1155,7 @@ def draw_end_screen(character):
 
 
 def main():
-    # TODO: If all players are disqualified, then end the game
+    # TODO: Log for player?
     # Make sure that the choice selected by the user is valid
     print("Selecting character...")
     valid = False
@@ -1176,9 +1176,6 @@ def main():
     print("Starting game...")
     board = Board(WIN)
 
-    print("Getting cards...")
-    cards = n.send(f'get_cards {selected.value}')
-
     current_turn = n.send('whos_turn')
     player_positions = n.send('get_all_positions')
 
@@ -1190,6 +1187,7 @@ def main():
     while run:
         # Ask whose turn it is
         turn_num = n.send('turn')
+        cards = n.send(f'get_cards {selected.value}')
         notes = n.send(f'get_notes {selected.value}')
 
         # If a player has moved, then get the positions of all players
@@ -1235,7 +1233,8 @@ def main():
         # If the game is quit early, then let the server that this player has quit
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                # TODO: Send a signal to the server that the game is being quit early
+                # Send a signal to the server that the game is being quit early
+                n.send(f'early_quit {selected.value}')
                 run = False
 
         # Update the window

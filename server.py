@@ -152,6 +152,10 @@ def threaded_client(connect, p, gameid):
                     elif data == 'get_winner':
                         reply = game.get_winner()
 
+                    elif data[:10] == 'early_quit':
+                        character = data[11:]
+                        game.early_quit(character)
+
                     connect.sendall(pickle.dumps(reply))
             else:
                 break
