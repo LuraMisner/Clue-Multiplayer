@@ -1,4 +1,3 @@
-from card import CardType
 from characters import Characters
 import constants
 
@@ -14,6 +13,7 @@ class Player:
         # Index 0: Characters, Index 1: Weapons, Index 2: Places
         self.notes = [[], [], []]
         self.position = constants.START_POSITIONS[character.value]
+        self.disqualified = False
 
     def add_note(self, card):
         """
@@ -21,14 +21,13 @@ class Player:
         :param card: Card object
         :return: None
         """
-        value = card.get_value()
-        category = card.get_category()
-        if category == CardType.CHARACTER:
-            self.notes[0].append(value)
-        elif category == CardType.WEAPON:
-            self.notes[1].append(value)
-        elif category == CardType.PLACE:
-            self.notes[2].append(value)
+        if card in ['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mr.Peacock', 'Miss Scarlet', 'Mrs.White']:
+            self.notes[0].append(card)
+        elif card in ['Knife', 'Candle stick', 'Revolver', 'Rope', 'Lead pipe', 'Wrench']:
+            self.notes[1].append(card)
+        elif card in ['Hall', 'Lounge', 'Dining Room', 'Kitchen', 'Ballroom', 'Conservatory',
+                      'Billiard Room', 'Library', 'Study']:
+            self.notes[2].append(card)
         else:
             print("Error adding to notes: Unidentified")
 
@@ -39,7 +38,7 @@ class Player:
         :return: None
         """
         self.cards.append(card)
-        self.add_note(card)
+        self.add_note(card.value)
 
     def set_position(self, new_position):
         """
@@ -91,3 +90,9 @@ class Player:
         for location in self.notes[2]:
             print(location)
         print("----------- END NOTES ---------------")
+
+    def disqualify(self):
+        self.disqualified = True
+
+    def get_disqualified(self):
+        return self.disqualified
