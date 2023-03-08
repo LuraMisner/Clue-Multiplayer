@@ -188,6 +188,11 @@ def threaded_client(connect, p, gameid):
             print("Error: ", er)
             break
 
+    if not games[gameid].get_won():
+        # Remove the character if they disconnect early and distribute the cards between remaining players
+        if character:
+            games[gameid].early_quit(character)
+
     print("Lost connection")
     connect.close()
 
