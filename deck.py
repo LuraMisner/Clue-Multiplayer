@@ -50,7 +50,10 @@ class Deck:
             card.to_string()
 
     @staticmethod
-    def all_values():
+    def all_values() -> [[str]]:
+        """
+        :return: Array of arrays of strings for all values in the deck
+        """
         return [['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mr.Peacock', 'Miss Scarlet', 'Mrs.White'],
                 ['Knife', 'Candle stick', 'Revolver', 'Rope', 'Lead pipe', 'Wrench'], ['Hall', 'Lounge', 'Dining Room',
                 'Kitchen', 'Ballroom', 'Conservatory', 'Billiard Room', 'Library', 'Study']]

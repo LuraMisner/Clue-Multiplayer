@@ -92,7 +92,13 @@ class Player:
         print("----------- END NOTES ---------------")
 
     def disqualify(self):
+        """
+        Marks player as disqualified
+        """
         self.disqualified = True
 
-    def get_disqualified(self):
+    def get_disqualified(self) -> bool:
+        """
+        :return: Boolean
+        """
         return self.disqualified

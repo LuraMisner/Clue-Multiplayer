@@ -195,6 +195,14 @@ class Game:
                 player.set_position(position)
 
     def make_suggestion(self, player, character, weapon, room):
+        """
+        Creates a new suggestion object and appends it to the list of suggestions
+        :param player: String representing the name of the player
+        :param character: String representing the name of the character
+        :param weapon: String representing the name of the weapon
+        :param room: String representing the name of the room
+        :return: None
+        """
         if not self.pending_suggestion:
             self.suggestions.append(Suggestion(player, character, weapon, room))
 
@@ -203,18 +211,32 @@ class Game:
                     self.waiting_on = pl
                     self.next_player()
 
-    def get_pending_suggestion(self):
+    def get_pending_suggestion(self) -> bool:
+        """
+        Checks if there is a suggestion that hasn't been completed
+        :return: Boolean of if there is an unanswered suggestions
+        """
         self.check_suggestion_status()
         return self.pending_suggestion
 
-    def get_waiting_on(self):
+    def get_waiting_on(self) -> Player:
+        """
+        :return: Player object representing the player the game is waiting on
+        """
         return self.waiting_on
 
-    def get_last_suggestion(self):
+    def get_last_suggestion(self) -> Suggestion:
+        """
+        :return: Suggestion object representing the latest suggestion
+        """
         if len(self.suggestions) > 0:
             return self.suggestions[len(self.suggestions) - 1]
 
     def check_suggestion_status(self):
+        """
+        Checks the status of the last suggestion to see if it is waiting for a response
+        :return: None
+        """
         if len(self.suggestions) > 0:
             if self.get_last_suggestion().get_solved():
                 self.pending_suggestion = False
@@ -222,6 +244,10 @@ class Game:
                 self.pending_suggestion = True
 
     def next_player(self):
+        """
+        Finds the next player to answer a suggestion
+        :return: None
+        """
         current = self.waiting_on
         suggestion_player = self.get_last_suggestion().get_player()
 
@@ -234,29 +260,58 @@ class Game:
             self.check_suggestion_status()
 
     def answer_suggestion(self, data):
+        """
+        :param data: String representing response to last suggestion
+        :return: None
+        """
         self.get_last_suggestion().set_result(data)
 
-    def get_suggestion_response(self):
+    def get_suggestion_response(self) -> str:
+        """
+        :return: String of the answer to the last suggestion
+        """
         return self.get_last_suggestion().get_result()
 
-    def get_suggestion_player(self):
+    def get_suggestion_player(self) -> str:
+        """
+        :return: String representing the player who made the suggestion
+        """
         return self.get_last_suggestion().get_player()
 
     def add_note(self, character, note):
+        """
+        Adds information to a players notes
+        :param character: String representing the players name
+        :param note: String representing information being added
+        :return: None
+        """
         for player in self.players:
             if player.get_character().value == character:
                 player.add_note(note)
 
-    def get_player_disqualification(self, character):
+    def get_player_disqualification(self, character) -> bool:
+        """
+        Checks if player is disqualified
+        :param character: String representing players name
+        :return: Boolean of if the player is disqualified
+        """
         for player in self.players:
             if player.get_character().value == character:
                 return player.get_disqualified()
 
-    def get_winner(self):
+    def get_winner(self) -> str:
+        """
+        :return: String of player who won
+        """
         if self.won:
             return self.who_won
 
     def early_quit(self, player):
+        """
+        If a player quits early, remove them from the players and split their cards between the remaining players
+        :param player: String representing the player who quit
+        :return: None
+        """
         quitter = None
         index = 0
         for ind, p in enumerate(self.players):
