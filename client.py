@@ -540,6 +540,10 @@ def accusation_or_pass(character, notes):
     :return: None
     """
 
+    # Title
+    draw_text('No one could disprove your suggestion', 22, constants.SCARLET, 600, 495)
+    draw_text('Would you like to make an accusation?', 22, constants.BLACK, 600, 515)
+
     # Accusation
     draw_box(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SCARLET)
     draw_text('Accusation', 22, constants.BLACK, 639, 463)
@@ -1116,6 +1120,7 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
 
             player_positions[character.value] = give_room_position(board, player_positions[character.value])
             draw_screen(board, cards, character, notes, player_positions, current_turn)
+            room = board.what_room(player_positions[character.value])
             pygame.display.update()
 
             suggest_or_pass(character, notes, room)
