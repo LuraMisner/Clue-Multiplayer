@@ -1,6 +1,7 @@
 import constants
 import pygame
 import random
+import sys
 import time
 from board import Board
 from characters import Characters
@@ -49,11 +50,7 @@ def draw_log():
     else:
         these_logs = log[len(log) - 6:]
 
-    font = pygame.font.SysFont('freesansbold.ttf', 16)
-    font2 = pygame.font.SysFont('freesansbold.ttf', 14)
-    title = pygame.font.SysFont('freesansbold.ttf', 22)
-
-    WIN.blit(title.render('LOG', True, constants.BLACK), (775, 550))
+    draw_text('LOG', 22, constants.BLACK, 775, 550)
     draw_box(630, 565, constants.LOG_X, constants.LOG_Y, constants.LOG)
 
     for i, line in enumerate(these_logs):
@@ -61,9 +58,9 @@ def draw_log():
         y = 573 + (i * 20)
 
         if len(line) <= 50:
-            WIN.blit(font.render(line, True, constants.WHITE), (x, y))
+            draw_text(line, 16, constants.WHITE, x, y)
         else:
-            WIN.blit(font2.render(line, True, constants.WHITE), (x, y))
+            draw_text(line, 14, constants.WHITE, x, y)
 
 
 def draw_players(player_positions, board):
@@ -110,8 +107,7 @@ def draw_turn(player):
     :param player: Character whose turn it is
     :return: Nothing
     """
-    font = pygame.font.SysFont('freesansbold.ttf', 24)
-    WIN.blit(font.render(f"It's {player.get_character().value}'s turn", True, constants.BLACK), (700, 725))
+    draw_text(f"It's {player.get_character().value}'s turn", 24, constants.BLACK, 700, 725)
 
 
 def draw_moves(move):
@@ -120,8 +116,7 @@ def draw_moves(move):
     :param move: Integer of how many moves are left
     :return: Nothing
     """
-    font = pygame.font.SysFont('freesansbold.ttf', 24)
-    WIN.blit(font.render(f'You have {move} moves left', True, constants.SCARLET), (700, 700))
+    draw_text(f'You have {move} moves left', 24, constants.SCARLET, 700, 700)
 
 
 def draw_notes(name, notes):
@@ -131,15 +126,12 @@ def draw_notes(name, notes):
     :param notes: Information this player knows (arr length 3) Index 0: characters, Index 1: weapons, Index 2: locations
     :return: Nothing
     """
-    header = pygame.font.SysFont('freesansbold.ttf', 32)
-    title = pygame.font.SysFont('freesansbold.ttf', 24)
     font = pygame.font.SysFont('freesansbold.ttf', 20)
-
-    WIN.blit(header.render(f"{name}'s notes", True, constants.BLACK), (675, 30))
+    draw_text(f"{name}'s notes", 32, constants.BLACK, 675, 30)
     all_cards = Deck.all_values()
 
     # Characters
-    WIN.blit(title.render("Potential Murder Suspects", True, constants.BLACK), (675, 75))
+    draw_text("Potential Murder Suspects", 24, constants.BLACK, 675, 75)
     for i, character in enumerate(all_cards[0]):
         x = 675 + (i//3 * 125)
         y = 100 + ((i % 3) * 20)
@@ -149,7 +141,7 @@ def draw_notes(name, notes):
             pygame.draw.line(WIN, constants.BLACK, (x, y+6), (x + len(character)*7, y+6), 2)
 
     # Weapons
-    WIN.blit(title.render("Potential Murder Weapons", True, constants.BLACK), (675, 200))
+    draw_text("Potential Murder Weapons", 24, constants.BLACK, 675, 200)
     for i, weapon in enumerate(all_cards[1]):
         x = 675 + (i//3 * 125)
         y = 225 + ((i % 3) * 20)
@@ -160,7 +152,7 @@ def draw_notes(name, notes):
             pygame.draw.line(WIN, constants.BLACK, (x, y + 6), (x + len(weapon)*7, y + 6), 2)
 
     # Locations
-    WIN.blit(title.render("Potential Murder Locations", True, constants.BLACK), (675, 325))
+    draw_text("Potential Murder Locations", 24, constants.BLACK, 675, 325)
     for i, location in enumerate(all_cards[2]):
         x = 630 + (i//3 * 125)
         y = 350 + ((i % 3) * 20)
@@ -177,9 +169,8 @@ def draw_cards(cards):
     :param cards: an array of Card objects that belong to the player
     :return: Nothing
     """
-    title = pygame.font.SysFont('freesansbold.ttf', 20)
     font = pygame.font.SysFont('freesansbold.ttf', 14)
-    WIN.blit(title.render('Your cards ', True, constants.BLACK), (265, 635))
+    draw_text('Your cards', 20, constants.BLACK, 265, 635)
 
     for i, card in enumerate(cards):
         x = 10 + ((i % 6) * 100)
@@ -221,15 +212,12 @@ def select_character() -> Characters:
 
         # How many players ready
         num_ready = n.send('num_ready')
-        font1 = pygame.font.SysFont('freesansbold.ttf', 26)
-        WIN.blit(font1.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True, constants.BLACK), (50, 50))
+        draw_text(f'{num_ready[1]} out of {num_ready[0]} players ready', 26, constants.BLACK, 50, 50)
 
-        # Title
-        header = pygame.font.SysFont('freesansbold.ttf', 60)
-        font = pygame.font.SysFont('freesansbold.ttf', 32)
+        # Fonts
         font2 = pygame.font.SysFont('freesansbold.ttf', 26)
 
-        WIN.blit(header.render('Select a Character', True, constants.BLACK), (300, 200))
+        draw_text('Select a Character', 60, constants.BLACK, 300, 200)
 
         mapping = {}
         # Character options
@@ -264,8 +252,7 @@ def select_character() -> Characters:
                 text1 = 'Reverend'
                 text2 = 'Green'
 
-            rect = pygame.Rect(x, y, constants.CHARACTER_SELECTION_SIZE, constants.CHARACTER_SELECTION_SIZE)
-            pygame.draw.rect(WIN, color, rect)
+            draw_box(x, y, constants.CHARACTER_SELECTION_SIZE, constants.CHARACTER_SELECTION_SIZE, color)
             WIN.blit(font2.render(f'{text1}', True, constants.BLACK), (x + 25 - (1.5 * len(text1)), 330))
             WIN.blit(font2.render(f'{text2}', True, constants.BLACK), (x + 25 - (1.5 * len(text2)), 355))
 
@@ -292,20 +279,15 @@ def select_character() -> Characters:
                         selection_made = True
 
         # Selection update
-        WIN.blit(font.render('Character Selected: ', True, constants.BLACK), (300, 500))
+        draw_text('Character Selected: ', 32, constants.BLACK, 300, 500)
 
+        # If a choice has been made, add a confirmation button to create the player
         if choice:
-            # If a choice has been made, add a confirmation button to create the player
-            WIN.blit(font.render(choice.value, True, constants.BLACK), (550, 500))
+            draw_text(choice.value, 32, constants.BLACK, 550, 500)
 
-            # Button to confirm selection (will confirm the selection made if choice != None
-            rect = pygame.Rect(425, 600, 125, 65)
-            pygame.draw.rect(WIN, (0, 0, 0), rect)
-            rect = pygame.Rect(427, 602, 121, 61)
-            pygame.draw.rect(WIN, (0, 255, 0), rect)
-
-            WIN.blit(font.render('Confirm', True, constants.BLACK), (442, 622))
-
+        # Button to confirm selection (will confirm the selection made if choice != None
+        draw_box(425, 600, 125, 65, constants.GREEN)
+        draw_text('Confirm', 32, constants.BLACK, 442, 622)
         pygame.display.update()
 
     return choice
@@ -426,8 +408,7 @@ def pick_exit(board, room) -> int:
     :param room: String representing the room name
     :return: Integer of selected entrance/exit position
     """
-    font = pygame.font.SysFont('freesansbold.ttf', 24)
-    WIN.blit(font.render(f'Select an exit from {room} by clicking on it', True, constants.SCARLET), (650, 700))
+    draw_text(f'Select an exit from {room} by clicking on it', 24, constants.SCARLET, 630, 700)
 
     while True:
         # Listen for clicks
@@ -452,36 +433,34 @@ def draw_buttons(room) -> str:
     :return: String representing the choice the user selected
     """
     choice = ''
-    font = pygame.font.SysFont('freesansbold.ttf', 22)
-    font2 = pygame.font.SysFont('freesansbold.ttf', 18)
 
     # Roll Dice button
     draw_box(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.ROLL_DICE)
-    WIN.blit(font.render('Roll Dice', True, constants.BLACK), (647, 463))
+    draw_text('Roll Dice', 22, constants.BLACK, 647, 463)
 
     # Suggestion button
     draw_box(655 + constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SUGGESTION)
-    WIN.blit(font.render('Suggestion', True, constants.BLACK), (663 + constants.BUTTON_SIZE_X, 463))
+    draw_text('Suggestion', 22, constants.BLACK, 663 + constants.BUTTON_SIZE_X, 463)
 
     # Accusation
     draw_box(680 + 2 * constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y,
              constants.SCARLET)
-    WIN.blit(font.render('Accusation', True, constants.BLACK), (688 + 2 * constants.BUTTON_SIZE_X, 463))
+    draw_text('Accusation', 22, constants.BLACK, 688 + 2 * constants.BUTTON_SIZE_X, 463)
 
     # Passage way
     if room in ['Kitchen', 'Lounge', 'Conservatory', 'Study']:
         draw_box(630, 480 + constants.BUTTON_SIZE_Y, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y,
                  constants.PASSAGE)
-        WIN.blit(font2.render('Passage', True, constants.BLACK), (655, 514))
+        draw_text('Passage', 18, constants.BLACK, 655, 514)
 
         if room == 'Kitchen':
-            WIN.blit(font2.render('To Study', True, constants.BLACK), (655, 525))
+            draw_text('To Study', 18, constants.BLACK, 655, 525)
         elif room == 'Study':
-            WIN.blit(font2.render('To Kitchen', True, constants.BLACK), (648, 525))
+            draw_text('To Kitchen', 18, constants.BLACK, 648, 525)
         elif room == 'Conservatory':
-            WIN.blit(font2.render('To Lounge', True, constants.BLACK), (650, 525))
+            draw_text('To Lounge', 18, constants.BLACK, 650, 525)
         elif room == 'Lounge':
-            WIN.blit(font2.render('To Conservatory', True, constants.BLACK), (633, 525))
+            draw_text('To Conservatory', 18, constants.BLACK, 633, 525)
 
     pygame.event.clear()
 
@@ -521,15 +500,14 @@ def suggest_or_pass(character, notes, room):
     :param room: String of what room the player is located in
     :return: None
     """
-    font = pygame.font.SysFont('freesansbold.ttf', 22)
 
     # Suggestion
     draw_box(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SUGGESTION)
-    WIN.blit(font.render('Suggestion', True, constants.BLACK), (639, 463))
+    draw_text('Suggestion', 22, constants.BLACK, 639, 463)
 
     # Pass
     draw_box(655 + constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SCARLET)
-    WIN.blit(font.render('Pass', True, constants.BLACK), (688 + constants.BUTTON_SIZE_X, 463))
+    draw_text('Pass', 22, constants.BLACK, 688 + constants.BUTTON_SIZE_X, 463)
 
     pygame.display.update()
     pygame.event.clear()
@@ -561,15 +539,14 @@ def accusation_or_pass(character, notes):
     :param notes: Array of arrays of strings representing information the player knows
     :return: None
     """
-    font = pygame.font.SysFont('freesansbold.ttf', 22)
 
     # Accusation
     draw_box(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SCARLET)
-    WIN.blit(font.render('Accusation', True, constants.BLACK), (639, 463))
+    draw_text('Accusation', 22, constants.BLACK, 639, 463)
 
     # Pass
     draw_box(655 + constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.PASSAGE)
-    WIN.blit(font.render('Pass', True, constants.BLACK), (688 + constants.BUTTON_SIZE_X, 463))
+    draw_text('Pass', 22, constants.BLACK, 688 + constants.BUTTON_SIZE_X, 463)
 
     pygame.display.update()
     pygame.event.clear()
@@ -663,10 +640,9 @@ def draw_suggestion(character, notes):
     :return: None
     """
     draw_notes(character.value, notes)
-    title = pygame.font.SysFont('freesansbold.ttf', 30)
     font = pygame.font.SysFont('freesansbold.ttf', 20)
 
-    WIN.blit(title.render('Select a character', True, constants.BLACK), (25, 75))
+    draw_text('Select a character', 30, constants.BLACK, 25, 75)
     # Characters - Colonel Mustard
     draw_box(25, 100, constants.CHARACTER_X, constants.CHARACTER_Y, constants.MUSTARD)
     WIN.blit(font.render('Colonel Mustard', True, constants.BLACK), (36, 110))
@@ -691,7 +667,7 @@ def draw_suggestion(character, notes):
     draw_box(175, 150, constants.CHARACTER_X, constants.CHARACTER_Y, constants.PLUM)
     WIN.blit(font.render('Professor Plum', True, constants.BLACK), (188, 160))
 
-    WIN.blit(title.render('Select a weapon', True, constants.BLACK), (25, 225))
+    draw_text('Select a weapon', 30, constants.BLACK, 25, 225)
     # Weapons - Knife
     draw_box(25, 250, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
     WIN.blit(font.render('Knife', True, constants.BLACK), (70, 260))
@@ -811,7 +787,6 @@ def make_suggestion(character, notes, room) -> str:
         # Get response
         c = n.send('waiting_on')
         response = n.send('get_suggestion_response')
-        WIN.blit(title.render(f'{c.get_character().value} shows you {response}', True, constants.BLACK), (100, 650))
 
         # Add this to players notes
         add_to_log()
@@ -834,9 +809,8 @@ def draw_related_cards(related_cards) -> {str: (int, int)}:
     :param related_cards: Array of card objects
     :return: Dictionary mapping {card value (str) -> (x , y) positions (int, int)}
     """
-    title = pygame.font.SysFont('freesansbold.ttf', 40)
     font = pygame.font.SysFont('freesansbold.ttf', 26)
-    WIN.blit(title.render('Related Cards: Pick one to show', True, constants.BLACK), (300, 100))
+    draw_text('Related Cards: Pick one to show', 40, constants.BLACK, 300, 100)
     related_map = {}
 
     if len(related_cards) > 0:
@@ -854,7 +828,7 @@ def draw_related_cards(related_cards) -> {str: (int, int)}:
                      (x + 4 * (20 - len(card_value)), y + 13))
 
     else:
-        WIN.blit(title.render('You have no related cards to show', True, constants.BLACK), (300, 200))
+        draw_text('You have no related cards to show', 40, constants.BLACK, 300, 200)
 
     return related_map
 
@@ -866,7 +840,6 @@ def respond_suggestion(cards):
     :return: None
     """
     suggestion = n.send('get_last_suggestion')
-    font = pygame.font.SysFont('freesansbold.ttf', 28)
 
     related_cards = []
     for card in cards:
@@ -885,7 +858,7 @@ def respond_suggestion(cards):
     while not confirm:
         WIN.fill(constants.BACKGROUND)
         related_map = draw_related_cards(related_cards)
-        WIN.blit(font.render(f'You have selected: {card_choice}', True, constants.BLACK), (50, 322))
+        draw_text(f'You have selected: {card_choice}', 28, constants.BLACK, 50, 322)
 
         # Listen for clicks
         ev = pygame.event.get()
@@ -910,7 +883,7 @@ def respond_suggestion(cards):
         if len(related_cards) == 0 or card_choice:
             # Confirmation button
             draw_box(400, 300, 2 * constants.BUTTON_SIZE_X, 2 * constants.BUTTON_SIZE_Y, constants.GREEN)
-            WIN.blit(font.render('Confirm', True, constants.BLACK), (460, 322))
+            draw_text('Confirm', 28, constants.BLACK, 460, 322)
 
         pygame.display.update()
 
@@ -929,12 +902,10 @@ def draw_accusation(character, notes):
     """
     WIN.fill(constants.BACKGROUND)
     draw_suggestion(character, notes)
-
-    title = pygame.font.SysFont('freesansbold.ttf', 30)
     font = pygame.font.SysFont('freesansbold.ttf', 20)
 
     # For accusations, we also include the rooms to choose from
-    WIN.blit(title.render('Select a room', True, constants.BLACK), (25, 375))
+    draw_text('Select a room', 30, constants.BLACK, 25, 375)
     # Rooms - Hall
     draw_box(25, 400, constants.ROOM_X, constants.ROOM_Y, constants.HALL)
     WIN.blit(font.render('Hall', True, constants.BLACK), (70, 410))
@@ -986,15 +957,13 @@ def handle_accusation(character, notes) -> str:
     confirm = False
     flag = False
 
-    title = pygame.font.SysFont('freesansbold.ttf', 36)
     font = pygame.font.SysFont('freesansbold.ttf', 24)
-    font2 = pygame.font.SysFont('freesansbold.ttf', 20)
 
     while not flag:
         draw_accusation(character, notes)
 
         # Section title
-        WIN.blit(title.render('Make an Accusation', True, constants.BLACK), (250, 40))
+        draw_text('Make an Accusation', 36, constants.BLACK, 250, 40)
 
         # Displays choices to the user
         WIN.blit(font.render('Character: ', True, constants.BLACK), (25, 550))
@@ -1018,10 +987,9 @@ def handle_accusation(character, notes) -> str:
         WIN.blit(font.render('Cancel', True, constants.BLACK), (357, 683))
 
         # Disclaimer
-        WIN.blit(title.render('WARNING', True, constants.SCARLET), (725, 625))
-        WIN.blit(font2.render('An incorrect accusation leads to disqualification', True, constants.BLACK), (625, 660))
-        WIN.blit(font2.render('You will lose your turns, and may only respond to suggestions',
-                              True, constants.BLACK), (590, 690))
+        draw_text('WARNING', 36, constants.SCARLET, 725, 625)
+        draw_text('An incorrect accusation leads to disqualification', 20, constants.BLACK, 625, 660)
+        draw_text('You will lose your turns, and may only respond to suggestions', 20, constants.BLACK, 590, 690)
 
         # Check for button clicks
         ev = pygame.event.get()
@@ -1147,6 +1115,10 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
                 player_positions[character.value] = constants.ENTRANCES['Conservatory'][0]
 
             player_positions[character.value] = give_room_position(board, player_positions[character.value])
+            draw_screen(board, cards, character, notes, player_positions, current_turn)
+            pygame.display.update()
+
+            suggest_or_pass(character, notes, room)
 
     else:
         player_positions = roll_dice(board, cards, character, notes, player_positions, current_turn, False)
@@ -1158,10 +1130,8 @@ def draw_disqualification():
     """
     Draws the disqualification message
     """
-    font = pygame.font.SysFont('freesansbold.ttf', 20)
-    WIN.blit(font.render('You have been disqualified', True, constants.SCARLET), (700, 430))
-    WIN.blit(font.render('You have lost your turn, but still must answer suggestions', True, constants.BLACK),
-             (610, 450))
+    draw_text('You have been disqualified', 20, constants.SCARLET, 700, 430)
+    draw_text('You have lost your turn, but still must answer suggestions', 20, constants.BLACK, 610, 450)
 
 
 def draw_end_screen(character):
@@ -1171,7 +1141,6 @@ def draw_end_screen(character):
     :return: None
     """
     winner = n.send('get_winner')
-    title = pygame.font.SysFont('freesansbold.ttf', 60)
     run = True
 
     while run:
@@ -1179,15 +1148,15 @@ def draw_end_screen(character):
 
         # Winner title
         if winner == character.value:
-            WIN.blit(title.render('Congratulations! You Won!', True, constants.BLACK), (225, 100))
+            draw_text('Congratulations! You Won!', 60, constants.BLACK, 225, 100)
         elif not winner:
-            WIN.blit(title.render('Everyone Disqualified! You Lose!', True, constants.BLACK), (200, 100))
+            draw_text('Everyone Disqualified! You Lose!', 60, constants.BLACK, 200, 100)
         else:
-            WIN.blit(title.render(f'{winner} Won!', True, constants.BLACK), (275 + 5 * (18 - len(winner)), 100))
+            draw_text(f'{winner} Won!', 60, constants.BLACK, 275 + 5 * (18 - len(winner)), 100)
 
         # Quit button
         draw_box(300, 300, 3 * constants.ROOM_X, 3 * constants.ROOM_Y, constants.GREEN)
-        WIN.blit(title.render('Quit', True, constants.BLACK), (435, 325))
+        draw_text('Quit', 60, constants.BLACK, 435, 325)
 
         for event in pygame.event.get():
             # Force quit
@@ -1218,7 +1187,7 @@ def add_to_log():
 
 def draw_box(x, y, x_length, y_length, color):
     """
-    Draws a box on the screen
+    Draws a box on the window
     :param x: Integer, x position of top left corner
     :param y: Integer, y position of top left corner
     :param x_length: Integer, length
@@ -1232,14 +1201,31 @@ def draw_box(x, y, x_length, y_length, color):
     pygame.draw.rect(WIN, color, rect)
 
 
+def draw_text(text, size, color, x, y):
+    """
+    Draws a text object on the window
+    :param text: String, text being displayed
+    :param size: Integer, size of the text
+    :param color: (int, int, int), color of the text
+    :param x: Integer, x position of top left corner
+    :param y: Integer, y position of top left corner
+    """
+    font = pygame.font.SysFont('freesansbold.ttf', size)
+    WIN.blit(font.render(text, True, color), (x, y))
+
+
 def main():
     # Make sure that the choice selected by the user is valid
     print("Selecting character...")
     valid = False
     selected = None
     while not valid:
-        selected = select_character()
-        valid = n.send(selected.value)
+        try:
+            selected = select_character()
+            valid = n.send(selected.value)
+        except TypeError:
+            print("Please start the server")
+            sys.exit()
 
     print("Creating player...")
 
