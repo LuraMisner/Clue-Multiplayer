@@ -41,8 +41,6 @@ def threaded_client(connect, p, gameid):
                 if not data:
                     break
                 else:
-                    print(log[gameid])
-
                     # Character selection
                     if data == 'character_selection':
                         reply = game.available_characters
