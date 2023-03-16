@@ -8,7 +8,6 @@ from game import Game
 # Running on local host
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-
 try:
     s.bind((constants.SERVER, constants.PORT))
 except socket.error as e:
