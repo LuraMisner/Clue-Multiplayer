@@ -1,3 +1,4 @@
+import constants
 import socket
 import pickle
 from _thread import *
@@ -5,13 +6,11 @@ from game import Game
 
 
 # Running on local host
-server = "192.168.1.204"
-port = 5555
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 try:
-    s.bind((server, port))
+    s.bind((constants.SERVER, constants.PORT))
 except socket.error as e:
     print(str(e))
 

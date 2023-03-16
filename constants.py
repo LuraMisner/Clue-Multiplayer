@@ -1,3 +1,7 @@
+# TODO: CHANGE THE SERVER BEFORE RUNNING
+SERVER = 'numbers.numbers.number.numbers'
+PORT = 5555
+
 
 # Pygame window adjustments
 WIDTH = 1000
