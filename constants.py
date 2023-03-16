@@ -1,5 +1,5 @@
 # TODO: CHANGE THE SERVER BEFORE RUNNING
-SERVER = '25.31.219.235'
+SERVER = 'numbers.numbers.number.numbers'
 PORT = 5555
 
 
