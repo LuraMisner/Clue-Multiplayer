@@ -716,6 +716,9 @@ def make_suggestion(character, notes, room) -> str:
         WIN.fill(constants.BACKGROUND)
         draw_suggestion(character, notes)
 
+        # Title
+        draw_text('Make a suggestion', 60, constants.BLACK, 125, 20)
+
         # Displays choices to the user
         WIN.blit(font.render('Character: ', True, constants.BLACK), (25, 400))
         if char:
@@ -807,20 +810,21 @@ def make_suggestion(character, notes, room) -> str:
         return 'Cancelled'
 
 
-def draw_related_cards(related_cards) -> {str: (int, int)}:
+def draw_related_cards(related_cards, player) -> {str: (int, int)}:
     """
     Draws cards for answering suggestions
     :param related_cards: Array of card objects
+    :param player: String of players name
     :return: Dictionary mapping {card value (str) -> (x , y) positions (int, int)}
     """
     font = pygame.font.SysFont('freesansbold.ttf', 26)
-    draw_text('Related Cards: Pick one to show', 40, constants.BLACK, 300, 100)
+    draw_text(f'Select a card to disprove {player}s suggestion', 36, constants.BLACK, 175, 200)
     related_map = {}
 
     if len(related_cards) > 0:
         for i, card in enumerate(related_cards):
-            x = 100 + (i * 200)
-            y = 175
+            x = 175 + (i * 200)
+            y = 250
 
             # Card background
             draw_box(x, y, 2 * constants.CARD_SIZE_X, 2 * constants.CARD_SIZE_Y, constants.CARD)
@@ -832,7 +836,7 @@ def draw_related_cards(related_cards) -> {str: (int, int)}:
                      (x + 4 * (20 - len(card_value)), y + 13))
 
     else:
-        draw_text('You have no related cards to show', 40, constants.BLACK, 300, 200)
+        draw_text('You have no related cards to show', 36, constants.BLACK, 300, 400)
 
     return related_map
 
@@ -861,8 +865,18 @@ def respond_suggestion(cards):
     card_choice = None
     while not confirm:
         WIN.fill(constants.BACKGROUND)
-        related_map = draw_related_cards(related_cards)
-        draw_text(f'You have selected: {card_choice}', 28, constants.BLACK, 50, 322)
+        # Title
+        draw_text(f'{suggestion.get_player()} has made a suggestion', 46, constants.BLACK, 225, 20)
+        draw_text(f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}', 30,
+                  constants.SCARLET, 230, 150)
+
+        # Cards
+        related_map = draw_related_cards(related_cards, suggestion.get_player())
+
+        # Confirmation background
+        draw_text(f'You have selected: {card_choice}', 28, constants.BLACK, 375, 600)
+        draw_box(400, 650, 2 * constants.BUTTON_SIZE_X, 2 * constants.BUTTON_SIZE_Y, constants.GREEN)
+        draw_text('Confirm', 28, constants.BLACK, 460, 672)
 
         # Listen for clicks
         ev = pygame.event.get()
@@ -881,13 +895,9 @@ def respond_suggestion(cards):
 
                 # Clicking confirmed
                 x, y = pos
-                if 400 <= x <= 400 + 2*constants.BUTTON_SIZE_X and 300 <= y <= 300 + 2*constants.BUTTON_SIZE_Y:
-                    confirm = True
-
-        if len(related_cards) == 0 or card_choice:
-            # Confirmation button
-            draw_box(400, 300, 2 * constants.BUTTON_SIZE_X, 2 * constants.BUTTON_SIZE_Y, constants.GREEN)
-            draw_text('Confirm', 28, constants.BLACK, 460, 322)
+                if 400 <= x <= 400 + 2*constants.BUTTON_SIZE_X and 650 <= y <= 650 + 2*constants.BUTTON_SIZE_Y:
+                    if len(related_cards) == 0 or card_choice:
+                        confirm = True
 
         pygame.display.update()
 
@@ -967,7 +977,7 @@ def handle_accusation(character, notes) -> str:
         draw_accusation(character, notes)
 
         # Section title
-        draw_text('Make an Accusation', 36, constants.BLACK, 250, 40)
+        draw_text('Make an Accusation', 60, constants.BLACK, 125, 20)
 
         # Displays choices to the user
         WIN.blit(font.render('Character: ', True, constants.BLACK), (25, 550))
@@ -1065,6 +1075,38 @@ def handle_accusation(character, notes) -> str:
         return 'Cancelled'
 
 
+def roll_or_accuse():
+    # Roll Dice button
+    draw_box(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.ROLL_DICE)
+    draw_text('Roll Dice', 22, constants.BLACK, 647, 463)
+
+    # Accusation button
+    draw_box(655 + constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SCARLET)
+    draw_text('Accusation', 22, constants.BLACK, 663 + constants.BUTTON_SIZE_X, 463)
+
+    pygame.event.clear()
+    choice = ''
+
+    while choice == '':
+        # Listen for clicks
+        ev = pygame.event.get()
+        for event in ev:
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                x, y = pos
+
+                # Check if they clicked the roll dice button
+                if 630 <= x <= 630 + constants.BUTTON_SIZE_X and 455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                    choice = 'Move'
+                elif 655 + constants.BUTTON_SIZE_X <= x <= 655 + 2 * constants.BUTTON_SIZE_X and \
+                        455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                    choice = 'Accusation'
+
+        pygame.display.update()
+
+    return choice
+
+
 def handle_turn(board, cards, character, notes, player_positions, current_turn) -> {str: int}:
     """
     Primary function in charge of managing players turn
@@ -1126,7 +1168,14 @@ def handle_turn(board, cards, character, notes, player_positions, current_turn) 
             suggest_or_pass(character, notes, room)
 
     else:
-        player_positions = roll_dice(board, cards, character, notes, player_positions, current_turn, False)
+        # Roll the Dice, or make an accusation
+        choice = roll_or_accuse()
+        if choice == 'Move':
+            player_positions = roll_dice(board, cards, character, notes, player_positions, current_turn, False)
+        elif choice == 'Accusation':
+            status = handle_accusation(character, notes)
+            if status and status == 'Cancelled':
+                return handle_turn(board, cards, character, notes, player_positions, current_turn)
 
     return player_positions
 
@@ -1148,6 +1197,8 @@ def draw_end_screen(character):
     winner = n.send('get_winner')
     run = True
 
+    envelope = n.send('get_envelope')
+
     while run:
         WIN.fill(constants.BACKGROUND)
 
@@ -1155,13 +1206,20 @@ def draw_end_screen(character):
         if winner == character.value:
             draw_text('Congratulations! You Won!', 60, constants.BLACK, 225, 100)
         elif not winner:
-            draw_text('Everyone Disqualified! You Lose!', 60, constants.BLACK, 200, 100)
+            draw_text('Everyone Disqualified! You Lose!', 60, constants.BLACK, 175, 100)
         else:
             draw_text(f'{winner} Won!', 60, constants.BLACK, 275 + 5 * (18 - len(winner)), 100)
 
+        # Display envelope
+        draw_text(envelope.get_character(), 56, constants.SCARLET, 100, 225)
+        draw_text('with the', 46, constants.BLACK, 300, 335)
+        draw_text(envelope.get_weapon(), 56, constants.SCARLET, 440, 335)
+        draw_text('in the', 46, constants.BLACK, 600, 445)
+        draw_text(envelope.get_room(), 56, constants.SCARLET, 700, 445)
+
         # Quit button
-        draw_box(300, 300, 3 * constants.ROOM_X, 3 * constants.ROOM_Y, constants.GREEN)
-        draw_text('Quit', 60, constants.BLACK, 435, 325)
+        draw_box(300, 600, 3 * constants.ROOM_X, 3 * constants.ROOM_Y, constants.GREEN)
+        draw_text('Quit', 60, constants.BLACK, 435, 625)
 
         for event in pygame.event.get():
             # Force quit
@@ -1172,7 +1230,7 @@ def draw_end_screen(character):
             if event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
 
-                if 300 <= x <= 300 + 3*constants.ROOM_X and 300 <= y <= 300 + 3*constants.ROOM_Y:
+                if 300 <= x <= 300 + 3*constants.ROOM_X and 600 <= y <= 600 + 3*constants.ROOM_Y:
                     run = False
 
         pygame.display.update()
