@@ -979,6 +979,35 @@ class Board:
                     pygame.draw.rect(self.window, color, entrance_rect)
                     self.board_mapping[space_id] = rect
 
+                # Add in passage ways
+                if space_id == 0:
+                    rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
+                    entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
+                                                SQUARE_SIZE - 2, SQUARE_SIZE - 2)
+                    pygame.draw.rect(self.window, constants.STUDY, entrance_rect)
+
+                elif space_id == 23:
+                    rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
+                    entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
+                                                SQUARE_SIZE - 2, SQUARE_SIZE - 2)
+                    pygame.draw.rect(self.window, constants.LOUNGE, entrance_rect)
+
+                elif space_id == 576:
+                    rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
+                    entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
+                                                SQUARE_SIZE - 2, SQUARE_SIZE - 2)
+                    pygame.draw.rect(self.window, constants.CONSERVATORY, entrance_rect)
+
+                elif space_id == 599:
+                    rect = pygame.Rect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+                    pygame.draw.rect(self.window, constants.BLACK, rect)
+                    entrance_rect = pygame.Rect((c * SQUARE_SIZE) + 1, (r * SQUARE_SIZE) + 1,
+                                                SQUARE_SIZE - 2, SQUARE_SIZE - 2)
+                    pygame.draw.rect(self.window, constants.KITCHEN, entrance_rect)
+
         # Outline of the board
         pygame.draw.line(self.window, constants.BLACK, (0, 0), (600, 0))
         pygame.draw.line(self.window, constants.BLACK, (600, 0), (600, 625))

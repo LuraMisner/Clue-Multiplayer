@@ -21,3 +21,21 @@ class Envelope:
         """
         return character == self.character.get_value() and \
             weapon == self.weapon.get_value() and location == self.location.get_value()
+
+    def get_character(self):
+        """
+        :return: String of characters name
+        """
+        return self.character.get_value()
+
+    def get_weapon(self):
+        """
+        :return: String of weapon name
+        """
+        return self.weapon.get_value()
+
+    def get_room(self):
+        """
+        :return: String of room name
+        """
+        return self.location.get_value()

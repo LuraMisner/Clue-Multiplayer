@@ -164,6 +164,10 @@ def threaded_client(connect, p, gameid):
                     elif data == 'get_winner':
                         reply = game.get_winner()
 
+                    # Get the envelope to display at the end
+                    elif data == 'get_envelope':
+                        reply = game.get_envelope()
+
                     # Gets data from the log (last 10 items)
                     elif data == 'get_log':
                         if len(log[gameid]) <= 10:
