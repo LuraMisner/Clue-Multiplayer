@@ -8,7 +8,6 @@ from game import Game
 # Running on local host
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-
 try:
     s.bind((constants.SERVER, constants.PORT))
 except socket.error as e:
@@ -164,6 +163,10 @@ def threaded_client(connect, p, gameid):
                     # Gets the winner
                     elif data == 'get_winner':
                         reply = game.get_winner()
+
+                    # Get the envelope to display at the end
+                    elif data == 'get_envelope':
+                        reply = game.get_envelope()
 
                     # Gets data from the log (last 10 items)
                     elif data == 'get_log':

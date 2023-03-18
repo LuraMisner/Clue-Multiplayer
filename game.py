@@ -15,7 +15,7 @@ class Game:
         self.split = False
 
         self.deck = Deck()
-        self.envelop = self.create_envelope()
+        self.envelope = self.create_envelope()
         self.deck.shuffle()
 
         self.available_characters = [Characters.COLONEL_MUSTARD, Characters.PROFESSOR_PLUM, Characters.MR_PEACOCK,
@@ -89,7 +89,7 @@ class Game:
         """
 
         # If they are right, then they won the game
-        if self.envelop.check_guess(character, weapon, room):
+        if self.envelope.check_guess(character, weapon, room):
             self.won = True
             self.who_won = player
         else:
@@ -325,7 +325,17 @@ class Game:
             self.player_count -= 1
 
             players_cards = quitter.get_cards()
-            i = 0
-            while players_cards:
-                self.players[i % len(self.players)].add_card(players_cards.pop())
-                i += 1
+
+            if self.player_count > 0:
+                i = 0
+                while players_cards:
+                    self.players[i % len(self.players)].add_card(players_cards.pop())
+                    i += 1
+
+    def get_envelope(self):
+        """
+        If the game is over, allow the envelope to be shared
+        :return: Envelope object containing the winning combination
+        """
+        if self.won:
+            return self.envelope
