@@ -42,7 +42,7 @@ def draw_log():
     Log that displays recent actions of players to other players
     :return: None
     """
-    add_to_log()
+    update_log()
 
     global log
     if len(log) <= 6:
@@ -781,29 +781,25 @@ def make_suggestion(character, notes, room) -> str:
     if confirm:
         n.send(f'make_suggestion {char},{weapon},{room}')
         ready = n.send('check_suggestion_status')
-        title = pygame.font.SysFont('freesansbold.ttf', 30)
+        title = pygame.font.SysFont('freesansbold.ttf', 40)
 
         while ready:
             c = n.send('waiting_on')
+            WIN.fill(constants.BACKGROUND)
+            WIN.blit(title.render(f'{char} with the {weapon} in the {room}', True, constants.BLACK), (150, 200))
             WIN.blit(title.render(f'Waiting on {c.get_character().value} to respond', True, constants.BLACK),
-                     (25, 725))
+                     (240, 300))
             pygame.display.update()
             time.sleep(1)
             ready = n.send('check_suggestion_status')
 
         # Get response
-        c = n.send('waiting_on')
         response = n.send('get_suggestion_response')
-
-        # Add this to players notes
-        add_to_log()
 
         if response != 'No one could disprove':
             n.send(f'add_note {response}')
-            log.append(f'{c.get_character().value} shows you {response}')
         else:
             accusation_or_pass(character, notes)
-            log.append(response)
 
     # Cancel button was pressed
     else:
@@ -1236,18 +1232,6 @@ def draw_end_screen(character):
         pygame.display.update()
 
 
-def add_to_log():
-    """
-    Updates and merges client personal log with the server log
-    """
-    global log
-    server_log = n.send('get_log')
-
-    for item in server_log:
-        if item not in log:
-            log.append(item)
-
-
 def draw_box(x, y, x_length, y_length, color):
     """
     Draws a box on the window
@@ -1275,6 +1259,11 @@ def draw_text(text, size, color, x, y):
     """
     font = pygame.font.SysFont('freesansbold.ttf', size)
     WIN.blit(font.render(text, True, color), (x, y))
+
+
+def update_log():
+    global log
+    log = n.send('get_log')
 
 
 def main():

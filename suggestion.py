@@ -7,6 +7,7 @@ class Suggestion:
         self.room = room
         self.solved = False
         self.result = None
+        self.answered = None
 
     def get_player(self) -> str:
         """
@@ -56,3 +57,15 @@ class Suggestion:
         """
         self.solve()
         self.result = data
+
+    def get_answered(self) -> str:
+        """
+        :return: String of player who answered
+        """
+        return self.answered
+
+    def set_answered(self, player):
+        """
+        :param player: String representing player who answered
+        """
+        self.answered = player

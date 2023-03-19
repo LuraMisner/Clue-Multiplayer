@@ -259,11 +259,13 @@ class Game:
             self.get_last_suggestion().set_result('No one could disprove')
             self.check_suggestion_status()
 
-    def answer_suggestion(self, data):
+    def answer_suggestion(self, player, data):
         """
+        :param player: String representing player who responded
         :param data: String representing response to last suggestion
         :return: None
         """
+        self.get_last_suggestion().set_answered(player)
         self.get_last_suggestion().set_result(data)
 
     def get_suggestion_response(self) -> str:
@@ -339,3 +341,9 @@ class Game:
         """
         if self.won:
             return self.envelope
+
+    def get_suggestion_player_response(self):
+        """
+        :return: String of character who answered the suggestion
+        """
+        return self.get_last_suggestion().get_answered()
