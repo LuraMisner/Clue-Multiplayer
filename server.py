@@ -62,6 +62,12 @@ def get_player_log(gameid, player) -> [str]:
 
 
 def threaded_client(connect, p, gameid):
+    """
+    Function that handles communication between the client and the server
+    :param connect: Address of client
+    :param p: Integer, player id
+    :param gameid: Integer, game id
+    """
     connect.send(str.encode(str(p)))
     character = None
 
@@ -240,7 +246,11 @@ def threaded_client(connect, p, gameid):
 
 
 while True:
-    # Accept any incoming connection
+    """
+    Accepts incoming connections, and places them into a game.
+    Creates a new game if none are available.
+    Starts the client on a thread
+    """
     conn, addr = s.accept()
     print("Connected to: ", addr)
 

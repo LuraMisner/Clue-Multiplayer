@@ -539,18 +539,33 @@ def accusation_or_pass(character, notes):
     :param notes: Array of arrays of strings representing information the player knows
     :return: None
     """
+    WIN.fill(constants.BACKGROUND)
+
+    # Display the last suggestion
+    suggestion = n.send('get_last_suggestion')
+    sug_str = f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}'
+
+    # Trying to center this
+    if len(sug_str) <= 30:
+        draw_text(sug_str, 40, constants.BLACK, 240, 60)
+    elif len(sug_str) <= 40:
+        draw_text(sug_str, 40, constants.BLACK, 215, 60)
+    elif len(sug_str) <= 50:
+        draw_text(sug_str, 40, constants.BLACK, 200, 60)
+    else:
+        draw_text(sug_str, 40, constants.BLACK, 120, 60)
 
     # Title
-    draw_text('No one could disprove your suggestion', 22, constants.SCARLET, 600, 495)
-    draw_text('Would you like to make an accusation?', 22, constants.BLACK, 600, 515)
+    draw_text('No one could disprove your suggestion', 40, constants.SCARLET, 225, 150)
+    draw_text('Would you like to make an accusation?', 40, constants.BLACK, 225, 185)
 
     # Accusation
-    draw_box(630, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SCARLET)
-    draw_text('Accusation', 22, constants.BLACK, 639, 463)
+    draw_box(360, 250, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.SCARLET)
+    draw_text('Accusation', 22, constants.BLACK, 369, 258)
 
     # Pass
-    draw_box(655 + constants.BUTTON_SIZE_X, 455, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.PASSAGE)
-    draw_text('Pass', 22, constants.BLACK, 688 + constants.BUTTON_SIZE_X, 463)
+    draw_box(395 + constants.BUTTON_SIZE_X, 250, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.PASSAGE)
+    draw_text('Pass', 22, constants.BLACK, 427 + constants.BUTTON_SIZE_X, 258)
 
     pygame.display.update()
     pygame.event.clear()
@@ -563,10 +578,10 @@ def accusation_or_pass(character, notes):
                 x, y = pos
 
                 # Check if they clicked the roll dice button
-                if 630 <= x <= 630 + constants.BUTTON_SIZE_X and 455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                if 360 <= x <= 360 + constants.BUTTON_SIZE_X and 250 <= y <= 250 + constants.BUTTON_SIZE_Y:
                     choice = 'Accusation'
-                elif 655 + constants.BUTTON_SIZE_X <= x <= 655 + 2 * constants.BUTTON_SIZE_X and \
-                        455 <= y <= 455 + constants.BUTTON_SIZE_Y:
+                elif 395 + constants.BUTTON_SIZE_X <= x <= 395 + 2 * constants.BUTTON_SIZE_X and \
+                        250 <= y <= 250 + constants.BUTTON_SIZE_Y:
                     choice = 'Pass'
 
     pygame.event.clear()
@@ -624,13 +639,19 @@ def roll_dice(board, cards, character, notes, player_positions, current_turn, ex
 
         # Handle a player entering the room
         if not exiting and Board.is_entrance(player_positions[character.value]):
-            # Sleep for a second to give the illusion of actually entering the room
+
             moves = 0
+            # Give them the illusion of actually entering the room
+            draw_screen(board, cards, character, notes, player_positions, current_turn)
+            draw_moves(moves)
+            n.send(f'update_position {player_positions[character.value]}')
+
             player_positions[character.value] = give_room_position(board, player_positions[character.value])
             suggest_or_pass(character, notes, board.what_room(player_positions[character.value]))
 
         draw_screen(board, cards, character, notes, player_positions, current_turn)
         draw_moves(moves)
+        n.send(f'update_position {player_positions[character.value]}')
         pygame.display.update()
 
     return player_positions
@@ -786,9 +807,9 @@ def make_suggestion(character, notes, room) -> str:
         while ready:
             c = n.send('waiting_on')
             WIN.fill(constants.BACKGROUND)
-            WIN.blit(title.render(f'{char} with the {weapon} in the {room}', True, constants.BLACK), (150, 200))
+            WIN.blit(title.render(f'{char} with the {weapon} in the {room}', True, constants.BLACK), (150, 100))
             WIN.blit(title.render(f'Waiting on {c.get_character().value} to respond', True, constants.BLACK),
-                     (240, 300))
+                     (240, 150))
             pygame.display.update()
             time.sleep(1)
             ready = n.send('check_suggestion_status')
@@ -1292,7 +1313,6 @@ def main():
     board = Board(WIN)
 
     current_turn = n.send('whos_turn')
-    player_positions = n.send('get_all_positions')
 
     # Some flags to keep track of if the game is quit early, if the player gets disqualified, and turn number
     disqualified = False
@@ -1304,12 +1324,12 @@ def main():
         turn_num = n.send('turn')
         cards = n.send(f'get_cards')
         notes = n.send(f'get_notes')
+        player_positions = n.send('get_all_positions')
 
         # If a player has moved, then get the positions of all players
         if turn_num != previous_turn:
             current_turn = n.send('whos_turn')
             previous_turn = current_turn
-            player_positions = n.send('get_all_positions')
 
         # Draw the board
         draw_screen(board, cards, selected, notes, player_positions, current_turn)
