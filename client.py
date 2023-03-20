@@ -546,12 +546,12 @@ def accusation_or_pass(character, notes):
     sug_str = f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}'
 
     # Trying to center this
-    if len(sug_str) <= 30:
-        draw_text(sug_str, 40, constants.BLACK, 240, 60)
-    elif len(sug_str) <= 40:
-        draw_text(sug_str, 40, constants.BLACK, 215, 60)
+    if len(sug_str) <= 40:
+        draw_text(sug_str, 40, constants.BLACK, 235, 60)
     elif len(sug_str) <= 50:
-        draw_text(sug_str, 40, constants.BLACK, 200, 60)
+        draw_text(sug_str, 40, constants.BLACK, 215, 60)
+    elif len(sug_str) <= 60:
+        draw_text(sug_str, 40, constants.BLACK, 185, 60)
     else:
         draw_text(sug_str, 40, constants.BLACK, 120, 60)
 
@@ -884,8 +884,14 @@ def respond_suggestion(cards):
         WIN.fill(constants.BACKGROUND)
         # Title
         draw_text(f'{suggestion.get_player()} has made a suggestion', 46, constants.BLACK, 225, 20)
-        draw_text(f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}', 30,
-                  constants.SCARLET, 230, 150)
+        suggest_text = f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}'
+
+        if len(suggest_text) <= 40:
+            draw_text(suggest_text, 30, constants.SCARLET, 260, 150)
+        elif len(suggest_text) <= 50:
+            draw_text(suggest_text, 30, constants.SCARLET, 230, 150)
+        else:
+            draw_text(suggest_text, 30, constants.SCARLET, 200, 150)
 
         # Cards
         related_map = draw_related_cards(related_cards, suggestion.get_player())
@@ -1346,6 +1352,19 @@ def main():
         if not current_turn.get_character().value == selected.value:
             waiting_on = n.send('waiting_on')
             pending_suggestion = n.send('check_suggestion_status')
+
+            # If there is a pending suggestion, display it to the user
+            if pending_suggestion:
+                # Get the suggestion to display it to the user
+                sugg = n.send('get_last_suggestion')
+                sugg_str = f'{sugg.get_character()} with the {sugg.get_weapon()} in the {sugg.get_room()}'
+
+                draw_text(f'{sugg.get_player()} has made a suggestion', 24, constants.SCARLET, 650, 450)
+
+                if len(sugg_str) <= 60:
+                    draw_text(sugg_str, 18, constants.SCARLET, 640, 475)
+                else:
+                    draw_text(sugg_str, 18, constants.SCARLET, 620, 475)
 
             if pending_suggestion is True and (waiting_on and waiting_on.get_character() == selected):
                 print("You have a suggestion to respond to...")
