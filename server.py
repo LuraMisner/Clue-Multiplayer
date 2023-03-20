@@ -24,7 +24,50 @@ idCount = 0
 gameId = 0
 
 
+def add_to_all_logs(gameid, text):
+    """
+    Adds a message for all players in the game to see
+    :param gameid: Integer, id of the game
+    :param text: String, message for players
+    """
+    for character, p_log in log[gameid]:
+        p_log.append(text)
+
+
+def add_to_player_log(gameid, player,  text):
+    """
+    Adds a message for one player to see
+    :param gameid: Integer, id of the game
+    :param player: String representing the player
+    :param text: String, message for the player
+    """
+    for character, p_log in log[gameid]:
+        if character == player:
+            p_log.append(text)
+
+
+def get_player_log(gameid, player) -> [str]:
+    """
+
+    :param gameid:
+    :param player:
+    :return:
+    """
+    for character, p_log in log[gameid]:
+        if character == player:
+            if len(p_log) <= 6:
+                return p_log
+            else:
+                return p_log[len(p_log) - 6:]
+
+
 def threaded_client(connect, p, gameid):
+    """
+    Function that handles communication between the client and the server
+    :param connect: Address of client
+    :param p: Integer, player id
+    :param gameid: Integer, game id
+    """
     connect.send(str.encode(str(p)))
     character = None
 
@@ -50,6 +93,7 @@ def threaded_client(connect, p, gameid):
                         try:
                             reply = game.add_player(data)
                             character = data
+                            log[gameid].append((character, []))
                         except Exception as err:
                             print("Error adding player: ", err)
                             reply = False
@@ -59,7 +103,7 @@ def threaded_client(connect, p, gameid):
                         ready[gameid][p] = True
                         reply = all(ready[gameid])
                         if reply and not game.get_split():
-                            log[gameid].append('Game started, cards distributed')
+                            add_to_all_logs(gameid, 'Game started, cards distributed')
                             game.split_cards()
 
                     # Tells client how many players are ready out of the players in this game
@@ -90,7 +134,7 @@ def threaded_client(connect, p, gameid):
                     elif data == 'check_disqualified':
                         reply = game.get_player_disqualification(character)
                         if reply:
-                            log[gameid].append(f'{character} has been disqualified')
+                            add_to_all_logs(gameid, f'{character} has been disqualified')
 
                     # Get the positions of all players
                     elif data == 'get_all_positions':
@@ -109,14 +153,14 @@ def threaded_client(connect, p, gameid):
                         char, weapon, room = data[16:].split(',')
                         game.make_suggestion(character, char, weapon, room)
 
-                        log[gameid].append(f'{character} suggests {char}, {weapon}, {room}')
+                        add_to_all_logs(gameid, f'{character} suggests {char}, {weapon}, {room}')
 
                     # Making an accusation
                     elif data[:15] == 'make_accusation':
                         char, weapon, room = data[16:].split(',')
                         game.make_accusation(character, char, weapon, room)
 
-                        log[gameid].append(f'{character} accuses {char}, {weapon}, {room}')
+                        add_to_all_logs(gameid, f'{character} accuses {char}, {weapon}, {room}')
 
                     # Check if the last suggestion has been completed
                     elif data == 'check_suggestion_status':
@@ -124,9 +168,9 @@ def threaded_client(connect, p, gameid):
 
                     # Client is submitting an answer to the question
                     elif data[:17] == 'answer_suggestion':
-                        game.answer_suggestion(data[18:])
+                        game.answer_suggestion(character, data[18:])
 
-                        log[gameid].append(f'{character} shows {game.get_suggestion_player()} a card')
+                        add_to_all_logs(gameid, f'{character} shows {game.get_suggestion_player()} a card')
 
                     # Check whose turn it is to answer a suggestion
                     elif data == 'waiting_on':
@@ -135,12 +179,19 @@ def threaded_client(connect, p, gameid):
                     # Wait on the next player
                     elif data == 'next_player':
                         game.next_player()
-
-                        log[gameid].append(f'{character} has no cards to show')
+                        add_to_all_logs(gameid, f'{character} has no cards to show')
 
                     # Get the response of a suggestion
                     elif data == 'get_suggestion_response':
                         reply = game.get_suggestion_response()
+
+                        if character == game.get_suggestion_player():
+                            # Add the response to the characters log
+                            if reply != 'No one could disprove':
+                                pl = game.get_suggestion_player_response()
+                                add_to_player_log(gameid, character, f'{pl} shows you {reply}')
+                            else:
+                                add_to_player_log(gameid, character, reply)
 
                     # Get the last suggestion
                     elif data == 'get_last_suggestion':
@@ -170,16 +221,13 @@ def threaded_client(connect, p, gameid):
 
                     # Gets data from the log (last 10 items)
                     elif data == 'get_log':
-                        if len(log[gameid]) <= 10:
-                            reply = log[gameid]
-                        else:
-                            reply = log[gameid][len(log[gameid]) - 10:]
+                        reply = get_player_log(gameid, character)
 
                     # Handles players closing the game early
                     elif data == 'early_quit':
                         game.early_quit(character)
 
-                        log[gameid].append(f'{character} has been disconnected. Cards distributed')
+                        add_to_all_logs(gameid, f'{character} has been disconnected. Cards distributed')
 
                     connect.sendall(pickle.dumps(reply))
             else:
@@ -198,7 +246,11 @@ def threaded_client(connect, p, gameid):
 
 
 while True:
-    # Accept any incoming connection
+    """
+    Accepts incoming connections, and places them into a game.
+    Creates a new game if none are available.
+    Starts the client on a thread
+    """
     conn, addr = s.accept()
     print("Connected to: ", addr)
 
