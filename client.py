@@ -8,14 +8,44 @@ from characters import Characters
 from deck import Deck
 from network import Network
 from roomtype import RoomType
+from tkinter import *
+from _thread import *
 
 
+pygame.init()
 WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
-pygame.init()
 
 n = Network()
 log = []
+
+
+def notes_set_up():
+    """
+    Code used from https://www.geeksforgeeks.org/build-a-basic-text-editor-using-tkinter-in-python/
+    Allows there to be a basic text editor available where the player can keep customized notes throughout the game
+    """
+    root = Tk()
+    root.geometry("400x400")
+    root.title("Clue Notes")
+    root.minsize(height=400, width=400)
+    root.maxsize(height=400, width=400)
+
+    # adding scrollbar
+    scrollbar = Scrollbar(root)
+
+    # packing scrollbar
+    scrollbar.pack(side=RIGHT,
+                   fill=Y)
+
+    text_info = Text(root,
+                     yscrollcommand=scrollbar.set)
+    text_info.pack(fill=BOTH)
+
+    # configuring the scrollbar
+    scrollbar.config(command=text_info.yview)
+
+    root.mainloop()
 
 
 def draw_screen(board, cards, character, notes, player_positions, current_turn):
@@ -127,7 +157,7 @@ def draw_notes(name, notes):
     :return: Nothing
     """
     font = pygame.font.SysFont('freesansbold.ttf', 20)
-    draw_text(f"{name}'s notes", 32, constants.BLACK, 675, 30)
+    draw_text(f"{name}'s notes", 32, constants.BLACK, 675, 20)
     all_cards = Deck.all_values()
 
     # Characters
@@ -423,6 +453,7 @@ def pick_exit(board, room) -> int:
 
                         if x <= x2 <= x + x_length and y <= y2 <= y + y_length:
                             return entrance
+
         pygame.display.update()
 
 
@@ -525,6 +556,8 @@ def suggest_or_pass(character, notes, room):
                 elif 655 + constants.BUTTON_SIZE_X <= x <= 655 + 2 * constants.BUTTON_SIZE_X and \
                         455 <= y <= 455 + constants.BUTTON_SIZE_Y:
                     choice = 'Pass'
+
+        pygame.display.flip()
 
     pygame.event.clear()
 
@@ -1298,6 +1331,7 @@ def main():
     print("Selecting character...")
     valid = False
     selected = None
+
     while not valid:
         try:
             selected = select_character()
@@ -1359,12 +1393,12 @@ def main():
                 sugg = n.send('get_last_suggestion')
                 sugg_str = f'{sugg.get_character()} with the {sugg.get_weapon()} in the {sugg.get_room()}'
 
-                draw_text(f'{sugg.get_player()} has made a suggestion', 24, constants.SCARLET, 650, 450)
+                draw_text(f'{sugg.get_player()} has made a suggestion', 24, constants.SCARLET, 650, 475)
 
                 if len(sugg_str) <= 60:
-                    draw_text(sugg_str, 18, constants.SCARLET, 640, 475)
+                    draw_text(sugg_str, 18, constants.SCARLET, 640, 500)
                 else:
-                    draw_text(sugg_str, 18, constants.SCARLET, 620, 475)
+                    draw_text(sugg_str, 18, constants.SCARLET, 620, 500)
 
             if pending_suggestion is True and (waiting_on and waiting_on.get_character() == selected):
                 print("You have a suggestion to respond to...")
@@ -1395,4 +1429,5 @@ def main():
         pygame.display.update()
 
 
+start_new_thread(notes_set_up, ())
 main()
