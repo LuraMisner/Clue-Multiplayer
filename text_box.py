@@ -4,7 +4,7 @@ pg.init()
 
 class InputBox:
     def __init__(self, x, y, w, h, window):
-        self.COLOR_INACTIVE = (0, 0, 0)
+        self.COLOR_INACTIVE = (192, 192, 192)
         self.COLOR_ACTIVE = (255, 255, 255)
 
         self.font_size = 16
@@ -31,6 +31,7 @@ class InputBox:
                 self.active = False
             # Change the current color of the input box.
             self.color = self.COLOR_ACTIVE if self.active else self.COLOR_INACTIVE
+
         if event.type == pg.KEYDOWN:
             if self.active:
                 # Start a new line
@@ -40,24 +41,24 @@ class InputBox:
                 # Deleting
                 elif event.key == pg.K_BACKSPACE:
                     if self.text:
-                        self.text[len(self.text) - 1] = self.text[len(self.text) - 1][:-1]
-
                         if len(self.text) > 1 and self.text[len(self.text) - 1] == '':
                             self.text.pop()
+
+                        self.text[len(self.text) - 1] = self.text[len(self.text) - 1][:-1]
 
                         if self.full:
                             self.full = False
 
                 # Add text
                 else:
-                    self.update()
                     if not self.full:
+                        self.update()
                         self.text[len(self.text)-1] += event.unicode
 
                 # Render the text
                 self.labels = []
                 for line in self.text:
-                    self.labels.append(self.FONT.render(line, True, (0, 0, 0)))
+                    self.labels.append(self.FONT.render(line, True, (255, 255, 255)))
 
     def update(self):
         # Start a new line if the text gets too long
@@ -79,8 +80,13 @@ class InputBox:
             self.limit = False
 
     def draw(self):
+
         # Draw a background
-        pg.draw.rect(self.screen, (192, 192, 192), (1000, 0, 300, 750))
+        pg.draw.rect(self.screen, (0, 0, 0), (1000, 0, 300, 750))
+
+        # Draw a title
+        font = pg.font.SysFont('freesansbold.ttf', 32)
+        self.screen.blit(font.render('Custom Notes', True, (255, 255, 255)), (1075, 20))
 
         # Blit the text.
         for line in range(len(self.labels)):

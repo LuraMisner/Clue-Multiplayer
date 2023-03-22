@@ -17,7 +17,7 @@ pygame.init()
 
 n = Network()
 log = []
-user_notes = InputBox(1025, 50, 275, 250, WIN)
+user_notes = InputBox(1010, 50, 280, 690, WIN)
 
 
 def draw_screen(board, cards, character, notes, player_positions, current_turn):
@@ -133,7 +133,7 @@ def draw_notes(name, notes):
     :return: Nothing
     """
     font = pygame.font.SysFont('freesansbold.ttf', 20)
-    draw_text(f"{name}'s notes", 32, constants.BLACK, 675, 30)
+    draw_text(f"{name}'s notes", 32, constants.BLACK, 675, 20)
     all_cards = Deck.all_values()
 
     # Characters
