@@ -8,16 +8,40 @@ from characters import Characters
 from deck import Deck
 from network import Network
 from roomtype import RoomType
-from text_box import InputBox
+from tkinter import *
+from _thread import *
 
 
+pygame.init()
 WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
-pygame.init()
 
 n = Network()
 log = []
-user_notes = InputBox(1010, 50, 280, 690, WIN)
+
+
+def notes_set_up():
+    root = Tk()
+    root.geometry("350x250")
+    root.title("Sticky Notes")
+    root.minsize(height=250, width=350)
+    root.maxsize(height=250, width=350)
+
+    # adding scrollbar
+    scrollbar = Scrollbar(root)
+
+    # packing scrollbar
+    scrollbar.pack(side=RIGHT,
+                   fill=Y)
+
+    text_info = Text(root,
+                     yscrollcommand=scrollbar.set)
+    text_info.pack(fill=BOTH)
+
+    # configuring the scrollbar
+    scrollbar.config(command=text_info.yview)
+
+    root.mainloop()
 
 
 def draw_screen(board, cards, character, notes, player_positions, current_turn):
@@ -37,10 +61,6 @@ def draw_screen(board, cards, character, notes, player_positions, current_turn):
     draw_notes(character.value, notes)
     draw_turn(current_turn)
     draw_log()
-
-    user_notes.update()
-    user_notes.draw()
-    pygame.draw.line(WIN, constants.BLACK, (1000, 0), (1000, 750))
 
 
 def draw_log():
@@ -294,7 +314,6 @@ def select_character() -> Characters:
         # Button to confirm selection (will confirm the selection made if choice != None
         draw_box(425, 600, 125, 65, constants.GREEN)
         draw_text('Confirm', 32, constants.BLACK, 442, 622)
-        pygame.draw.line(WIN, constants.BLACK, (1000, 0), (1000, 750))
         pygame.display.update()
 
     return choice
@@ -431,11 +450,6 @@ def pick_exit(board, room) -> int:
                         if x <= x2 <= x + x_length and y <= y2 <= y + y_length:
                             return entrance
 
-            user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
-
         pygame.display.update()
 
 
@@ -500,11 +514,6 @@ def draw_buttons(room) -> str:
                         480 + constants.BUTTON_SIZE_Y <= y <= 480 + 2 * constants.BUTTON_SIZE_Y:
                     choice = 'Passage'
 
-            user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
-
         pygame.display.update()
 
     return choice
@@ -544,10 +553,6 @@ def suggest_or_pass(character, notes, room):
                         455 <= y <= 455 + constants.BUTTON_SIZE_Y:
                     choice = 'Pass'
 
-            user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
         pygame.display.flip()
 
     pygame.event.clear()
@@ -591,7 +596,6 @@ def accusation_or_pass(character, notes):
     draw_box(395 + constants.BUTTON_SIZE_X, 250, constants.BUTTON_SIZE_X, constants.BUTTON_SIZE_Y, constants.PASSAGE)
     draw_text('Pass', 22, constants.BLACK, 427 + constants.BUTTON_SIZE_X, 258)
 
-    pygame.draw.line(WIN, constants.BLACK, (1000, 0), (1000, 750))
     pygame.display.update()
     pygame.event.clear()
 
@@ -608,12 +612,6 @@ def accusation_or_pass(character, notes):
                 elif 395 + constants.BUTTON_SIZE_X <= x <= 395 + 2 * constants.BUTTON_SIZE_X and \
                         250 <= y <= 250 + constants.BUTTON_SIZE_Y:
                     choice = 'Pass'
-
-                user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
-        pygame.display.flip()
 
     pygame.event.clear()
 
@@ -667,8 +665,6 @@ def roll_dice(board, cards, character, notes, player_positions, current_turn, ex
                         player_positions[character.value] -= 24
                         moves -= 1
                         exiting = False
-
-            user_notes.handle_event(event)
 
         # Handle a player entering the room
         if not exiting and Board.is_entrance(player_positions[character.value]):
@@ -750,8 +746,6 @@ def draw_suggestion(character, notes):
     draw_box(175, 300, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
     WIN.blit(font.render('Wrench', True, constants.BLACK), (213, 310))
 
-    pygame.draw.line(WIN, constants.BLACK, (1000, 0), (1000, 750))
-
 
 def make_suggestion(character, notes, room) -> str:
     """
@@ -832,11 +826,6 @@ def make_suggestion(character, notes, room) -> str:
                 elif 325 <= x <= 325 + constants.ROOM_X and 675 <= y <= 675 + constants.ROOM_Y:
                     run = False
 
-                user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
-
         pygame.display.update()
 
     if confirm:
@@ -850,7 +839,6 @@ def make_suggestion(character, notes, room) -> str:
             WIN.blit(title.render(f'{char} with the {weapon} in the {room}', True, constants.BLACK), (150, 100))
             WIN.blit(title.render(f'Waiting on {c.get_character().value} to respond', True, constants.BLACK),
                      (240, 150))
-            pygame.draw.line(WIN, constants.BLACK, (1000, 0), (1000, 750))
             pygame.display.update()
             time.sleep(1)
             ready = n.send('check_suggestion_status')
@@ -926,7 +914,6 @@ def respond_suggestion(cards):
         # Title
         draw_text(f'{suggestion.get_player()} has made a suggestion', 46, constants.BLACK, 225, 20)
         suggest_text = f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}'
-        pygame.draw.line(WIN, constants.BLACK, (1000, 0), (1000, 750))
 
         if len(suggest_text) <= 40:
             draw_text(suggest_text, 30, constants.SCARLET, 260, 150)
@@ -964,10 +951,6 @@ def respond_suggestion(cards):
                     if len(related_cards) == 0 or card_choice:
                         confirm = True
 
-                user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
         pygame.display.update()
 
     if card_choice:
@@ -1134,10 +1117,6 @@ def handle_accusation(character, notes) -> str:
                 elif 325 <= x <= 325 + constants.ROOM_X and 675 <= y <= 675 + constants.ROOM_Y:
                     flag = True
 
-                user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
         pygame.display.update()
 
     if flag and confirm:
@@ -1175,10 +1154,6 @@ def roll_or_accuse():
                         455 <= y <= 455 + constants.BUTTON_SIZE_Y:
                     choice = 'Accusation'
 
-            user_notes.handle_event(event)
-
-        user_notes.update()
-        user_notes.draw()
         pygame.display.update()
 
     return choice
@@ -1446,10 +1421,9 @@ def main():
                 n.send(f'early_quit')
                 run = False
 
-            user_notes.handle_event(event)
-
         # Update the window
         pygame.display.update()
 
 
+start_new_thread(notes_set_up, ())
 main()

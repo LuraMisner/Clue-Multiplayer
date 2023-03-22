@@ -4,7 +4,7 @@ PORT = 5555
 
 
 # Pygame window adjustments
-WIDTH = 1300
+WIDTH = 1000
 HEIGHT = 750
 
 # Start positions
