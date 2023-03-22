@@ -21,11 +21,15 @@ log = []
 
 
 def notes_set_up():
+    """
+    Code used from https://www.geeksforgeeks.org/build-a-basic-text-editor-using-tkinter-in-python/
+    Allows there to be a basic text editor available where the player can keep customized notes throughout the game
+    """
     root = Tk()
-    root.geometry("350x250")
-    root.title("Sticky Notes")
-    root.minsize(height=250, width=350)
-    root.maxsize(height=250, width=350)
+    root.geometry("400x400")
+    root.title("Clue Notes")
+    root.minsize(height=400, width=400)
+    root.maxsize(height=400, width=400)
 
     # adding scrollbar
     scrollbar = Scrollbar(root)
