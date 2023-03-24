@@ -1,4 +1,5 @@
 from space import Space
+from room import Room
 from roomtype import RoomType
 import pygame
 import constants
@@ -37,6 +38,19 @@ class Board:
 
         # Maps the space ID to a square on the board
         self.board_mapping = {}
+
+        # Create the room sprite group
+        self.room_group = pygame.sprite.Group()
+
+        kitchen = Room(0, 0, 'images/kitchen.png')
+        self.room_group.add(kitchen)
+
+        ballroom = Room(200, 25, 'images/ballroom.png')
+        self.room_group.add(ballroom)
+
+        conserv = Room(450, 0, 'images/conservatory.png')
+        self.room_group.add(conserv)
+
 
     @staticmethod
     def is_entrance(space):
@@ -1037,3 +1051,5 @@ class Board:
         self.window.blit(font.render('M', True, constants.BLACK), (6, 432))
         self.window.blit(font.render('PL', True, constants.BLACK), (577, 482))
         self.window.blit(font.render('S', True, constants.BLACK), (182, 607))
+
+        self.room_group.draw(self.window)

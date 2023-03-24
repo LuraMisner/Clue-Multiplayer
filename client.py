@@ -15,6 +15,7 @@ from _thread import *
 pygame.init()
 WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
+clock = pygame.time.Clock()
 
 n = Network()
 log = []
@@ -26,8 +27,8 @@ def notes_set_up():
     Allows there to be a basic text editor available where the player can keep customized notes throughout the game
     """
     root = Tk()
-    root.geometry("400x400")
-    root.title("Clue Notes")
+    root.geometry("500x500")
+    root.title("Clue Notes - Don't Close")
     root.minsize(height=400, width=400)
     root.maxsize(height=400, width=400)
 
@@ -1427,6 +1428,7 @@ def main():
 
         # Update the window
         pygame.display.update()
+        clock.tick(60)
 
 
 start_new_thread(notes_set_up, ())
