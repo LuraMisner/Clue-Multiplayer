@@ -118,7 +118,7 @@ def draw_players(player_positions, board):
         elif character == Characters.MRS_WHITE.value:
             pygame.draw.circle(WIN, constants.WHITE, (center_x, center_y), x_length // 2.5)
             WIN.blit(font.render('W', True, constants.BLACK), (center_x - 5, center_y - 5))
-        elif character == Characters.MR_PEACOCK.value:
+        elif character == Characters.MRS_PEACOCK.value:
             pygame.draw.circle(WIN, constants.PEACOCK, (center_x, center_y), x_length // 2.5)
             WIN.blit(font.render('PK', True, constants.BLACK), (center_x - 8, center_y - 5))
         elif character == Characters.MISS_SCARLET.value:
@@ -265,9 +265,9 @@ def select_character() -> Characters:
                 color = constants.SCARLET
                 text1 = 'Miss'
                 text2 = 'Scarlet'
-            elif ch == Characters.MR_PEACOCK:
+            elif ch == Characters.MRS_PEACOCK:
                 color = constants.PEACOCK
-                text1 = 'Mr.'
+                text1 = 'Mrs.'
                 text2 = 'Peacock'
             elif ch == Characters.MRS_WHITE:
                 color = constants.WHITE
@@ -718,9 +718,9 @@ def draw_suggestion(character, notes):
     draw_box(475, 100, constants.CHARACTER_X, constants.CHARACTER_Y, constants.GREEN)
     WIN.blit(font.render('Reverend Green', True, constants.BLACK), (485, 110))
 
-    # Mr. Peacock
+    # Mrs. Peacock
     draw_box(25, 150, constants.CHARACTER_X, constants.CHARACTER_Y, constants.PEACOCK)
-    WIN.blit(font.render('Mr. Peacock', True, constants.BLACK), (50, 160))
+    WIN.blit(font.render('Mrs. Peacock', True, constants.BLACK), (50, 160))
 
     # Professor Plum
     draw_box(175, 150, constants.CHARACTER_X, constants.CHARACTER_Y, constants.PLUM)
@@ -809,7 +809,7 @@ def make_suggestion(character, notes, room) -> str:
                 elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
                     char = 'Reverend Green'
                 elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
-                    char = 'Mr.Peacock'
+                    char = 'Mrs.Peacock'
                 elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
                     char = 'Professor Plum'
                 elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
@@ -1078,7 +1078,7 @@ def handle_accusation(character, notes) -> str:
                 elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
                     char = 'Reverend Green'
                 elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
-                    char = 'Mr.Peacock'
+                    char = 'Mrs.Peacock'
                 elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
                     char = 'Professor Plum'
                 elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:

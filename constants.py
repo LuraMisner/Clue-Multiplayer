@@ -8,7 +8,7 @@ WIDTH = 1000
 HEIGHT = 750
 
 # Start positions
-START_POSITIONS = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mr.Peacock': 167,
+START_POSITIONS = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mrs.Peacock': 167,
                    'Mrs.White': 9, 'Professor Plum': 479, 'Reverend Green': 14}
 
 # Entrances to rooms

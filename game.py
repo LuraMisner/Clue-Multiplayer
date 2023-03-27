@@ -18,7 +18,7 @@ class Game:
         self.envelope = self.create_envelope()
         self.deck.shuffle()
 
-        self.available_characters = [Characters.COLONEL_MUSTARD, Characters.PROFESSOR_PLUM, Characters.MR_PEACOCK,
+        self.available_characters = [Characters.COLONEL_MUSTARD, Characters.PROFESSOR_PLUM, Characters.MRS_PEACOCK,
                                      Characters.MRS_WHITE, Characters.REVEREND_GREEN, Characters.MISS_SCARLET]
 
         self.players = []
@@ -64,8 +64,8 @@ class Game:
             character = Characters.MISS_SCARLET
         elif player == 'Mrs.White':
             character = Characters.MRS_WHITE
-        elif player == 'Mr.Peacock':
-            character = Characters.MR_PEACOCK
+        elif player == 'Mrs.Peacock':
+            character = Characters.MRS_PEACOCK
         elif player == 'Professor Plum':
             character = Characters.PROFESSOR_PLUM
         elif player == 'Reverend Green':

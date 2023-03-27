@@ -13,7 +13,7 @@ class Deck:
         self.deck.append(Card('Colonel Mustard', CardType.CHARACTER))
         self.deck.append(Card('Professor Plum', CardType.CHARACTER))
         self.deck.append(Card('Reverend Green', CardType.CHARACTER))
-        self.deck.append(Card('Mr.Peacock', CardType.CHARACTER))
+        self.deck.append(Card('Mrs.Peacock', CardType.CHARACTER))
         self.deck.append(Card('Miss Scarlet', CardType.CHARACTER))
         self.deck.append(Card('Mrs.White', CardType.CHARACTER))
 
@@ -54,6 +54,6 @@ class Deck:
         """
         :return: Array of arrays of strings for all values in the deck
         """
-        return [['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mr.Peacock', 'Miss Scarlet', 'Mrs.White'],
+        return [['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mrs.Peacock', 'Miss Scarlet', 'Mrs.White'],
                 ['Knife', 'Candle stick', 'Revolver', 'Rope', 'Lead pipe', 'Wrench'], ['Hall', 'Lounge', 'Dining Room',
                 'Kitchen', 'Ballroom', 'Conservatory', 'Billiard Room', 'Library', 'Study']]
