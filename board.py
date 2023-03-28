@@ -1,5 +1,5 @@
 from space import Space
-from room import Room
+from picture import Picture
 from roomtype import RoomType
 import pygame
 import constants
@@ -48,31 +48,31 @@ class Board:
         """
         Initializes the room graphics for the board
         """
-        kitchen = Room(0, 0, 'images/rooms/kitchen.png')
+        kitchen = Picture(0, 0, 'images/rooms/kitchen.png')
         self.room_group.add(kitchen)
 
-        ballroom = Room(200, 25, 'images/rooms/ballroom.png')
+        ballroom = Picture(200, 25, 'images/rooms/ballroom.png')
         self.room_group.add(ballroom)
 
-        conservatory = Room(450, 0, 'images/rooms/conservatory.png')
+        conservatory = Picture(450, 0, 'images/rooms/conservatory.png')
         self.room_group.add(conservatory)
 
-        dining = Room(0, 225, 'images/rooms/dining.png')
+        dining = Picture(0, 225, 'images/rooms/dining.png')
         self.room_group.add(dining)
 
-        billiards = Room(450, 200, 'images/rooms/billard.png')
+        billiards = Picture(450, 200, 'images/rooms/billard.png')
         self.room_group.add(billiards)
 
-        lounge = Room(0, 475, 'images/rooms/lounge.png')
+        lounge = Picture(0, 475, 'images/rooms/lounge.png')
         self.room_group.add(lounge)
 
-        hall = Room(225, 450, 'images/rooms/hall.png')
+        hall = Picture(225, 450, 'images/rooms/hall.png')
         self.room_group.add(hall)
 
-        study = Room(425, 525, 'images/rooms/study.png')
+        study = Picture(425, 525, 'images/rooms/study.png')
         self.room_group.add(study)
 
-        library = Room(425, 350, 'images/rooms/library.png')
+        library = Picture(425, 350, 'images/rooms/library.png')
         self.room_group.add(library)
 
     @staticmethod

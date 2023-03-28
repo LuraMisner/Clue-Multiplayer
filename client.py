@@ -6,19 +6,27 @@ import time
 from board import Board
 from characters import Characters
 from deck import Deck
+from picture import Picture
 from network import Network
 from roomtype import RoomType
 from tkinter import *
 from _thread import *
 
 
+# Pygame initializations
 pygame.init()
 WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 pygame.display.set_caption("Clue")
 clock = pygame.time.Clock()
 
+# Network and log
 n = Network()
 log = []
+
+# Picture groups
+weapons_group = pygame.sprite.Group()
+rooms_group = pygame.sprite.Group()
+characters_group = pygame.sprite.Group()
 
 
 def notes_set_up():
@@ -47,6 +55,39 @@ def notes_set_up():
     scrollbar.config(command=text_info.yview)
 
     root.mainloop()
+
+
+# noinspection PyTypeChecker
+def image_setups():
+    """
+    Initializes Pictures into their groups for the suggestions/accusations part
+    """
+    # Character button images
+    characters_group.add(Picture(25, 100, 'images/character-buttons/colonel.png'))
+    characters_group.add(Picture(175, 100, 'images/character-buttons/scarlet.png'))
+    characters_group.add(Picture(325, 100, 'images/character-buttons/white.png'))
+    characters_group.add(Picture(475, 100, 'images/character-buttons/green.png'))
+    characters_group.add(Picture(25, 150, 'images/character-buttons/peacock.png'))
+    characters_group.add(Picture(175, 150, 'images/character-buttons/plum.png'))
+
+    # Weapon button images
+    weapons_group.add(Picture(25, 250, 'images/weapon-buttons/knife.png'))
+    weapons_group.add(Picture(175, 250, 'images/weapon-buttons/candle.png'))
+    weapons_group.add(Picture(325, 250, 'images/weapon-buttons/revolver.png'))
+    weapons_group.add(Picture(475, 250, 'images/weapon-buttons/rope.png'))
+    weapons_group.add(Picture(25, 300, 'images/weapon-buttons/lead.png'))
+    weapons_group.add(Picture(175, 300, 'images/weapon-buttons/wrench.png'))
+
+    # Room button images
+    rooms_group.add(Picture(25, 400, 'images/room-buttons/hall.png'))
+    rooms_group.add(Picture(175, 400, 'images/room-buttons/lounge.png'))
+    rooms_group.add(Picture(325, 400, 'images/room-buttons/dining.png'))
+    rooms_group.add(Picture(475, 400, 'images/room-buttons/kitchen.png'))
+    rooms_group.add(Picture(25, 450, 'images/room-buttons/ballroom.png'))
+    rooms_group.add(Picture(175, 450, 'images/room-buttons/conservatory.png'))
+    rooms_group.add(Picture(325, 450, 'images/room-buttons/billiards.png'))
+    rooms_group.add(Picture(475, 450, 'images/room-buttons/library.png'))
+    rooms_group.add(Picture(25, 500, 'images/room-buttons/study.png'))
 
 
 def draw_screen(board, cards, character, notes, player_positions, current_turn):
@@ -691,67 +732,6 @@ def roll_dice(board, cards, character, notes, player_positions, current_turn, ex
     return player_positions
 
 
-def draw_suggestion(character, notes):
-    """
-    Draws the screen for suggestions
-    :param character: Character enum
-    :param notes: Array of arrays of strings
-    :return: None
-    """
-    draw_notes(character.value, notes)
-    font = pygame.font.SysFont('freesansbold.ttf', 20)
-
-    draw_text('Select a character', 30, constants.BLACK, 25, 75)
-    # Characters - Colonel Mustard
-    draw_box(25, 100, constants.CHARACTER_X, constants.CHARACTER_Y, constants.MUSTARD)
-    WIN.blit(font.render('Colonel Mustard', True, constants.BLACK), (36, 110))
-
-    # Miss Scarlet
-    draw_box(175, 100, constants.CHARACTER_X, constants.CHARACTER_Y, constants.SCARLET)
-    WIN.blit(font.render('Miss Scarlet', True, constants.BLACK), (198, 110))
-
-    # Mrs. White
-    draw_box(325, 100, constants.CHARACTER_X, constants.CHARACTER_Y, constants.WHITE)
-    WIN.blit(font.render('Mrs. White', True, constants.BLACK), (353, 110))
-
-    # Reverend Green
-    draw_box(475, 100, constants.CHARACTER_X, constants.CHARACTER_Y, constants.GREEN)
-    WIN.blit(font.render('Reverend Green', True, constants.BLACK), (485, 110))
-
-    # Mrs. Peacock
-    draw_box(25, 150, constants.CHARACTER_X, constants.CHARACTER_Y, constants.PEACOCK)
-    WIN.blit(font.render('Mrs. Peacock', True, constants.BLACK), (50, 160))
-
-    # Professor Plum
-    draw_box(175, 150, constants.CHARACTER_X, constants.CHARACTER_Y, constants.PLUM)
-    WIN.blit(font.render('Professor Plum', True, constants.BLACK), (188, 160))
-
-    draw_text('Select a weapon', 30, constants.BLACK, 25, 225)
-    # Weapons - Knife
-    draw_box(25, 250, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
-    WIN.blit(font.render('Knife', True, constants.BLACK), (70, 260))
-
-    # Candle stick
-    draw_box(175, 250, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
-    WIN.blit(font.render('Candle stick', True, constants.BLACK), (196, 260))
-
-    # Revolver
-    draw_box(325, 250, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
-    WIN.blit(font.render('Revolver', True, constants.BLACK), (357, 260))
-
-    # Rope
-    draw_box(475, 250, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
-    WIN.blit(font.render('Rope', True, constants.BLACK), (517, 260))
-
-    # Lead Pipe
-    draw_box(25, 300, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
-    WIN.blit(font.render('Lead Pipe', True, constants.BLACK), (53, 310))
-
-    # Wrench
-    draw_box(175, 300, constants.WEAPON_X, constants.WEAPON_Y, constants.WEAPONS)
-    WIN.blit(font.render('Wrench', True, constants.BLACK), (213, 310))
-
-
 def make_suggestion(character, notes, room) -> str:
     """
     Handles selection for suggestions, tells suggestion to the server and waits for a response
@@ -769,7 +749,11 @@ def make_suggestion(character, notes, room) -> str:
     run = True
     while run:
         WIN.fill(constants.BACKGROUND)
-        draw_suggestion(character, notes)
+        draw_notes(character.value, notes)
+        draw_text('Select a character', 30, constants.BLACK, 25, 75)
+        draw_text('Select a weapon', 30, constants.BLACK, 25, 225)
+        characters_group.draw(WIN)
+        weapons_group.draw(WIN)
 
         # Title
         draw_text('Make a suggestion', 60, constants.BLACK, 125, 20)
@@ -786,11 +770,11 @@ def make_suggestion(character, notes, room) -> str:
         WIN.blit(font.render(f'Room: {room}', True, constants.BLACK), (25, 450))
 
         # Confirm button
-        draw_box(175, 675, constants.ROOM_X, constants.ROOM_Y, constants.GREEN)
+        draw_box(175, 675, constants.SUGGESTION_BUTTONS_X, constants.SUGGESTION_BUTTONS_Y, constants.GREEN)
         WIN.blit(font.render('Confirm', True, constants.BLACK), (207, 683))
 
         # Cancel button
-        draw_box(325, 675, constants.ROOM_X, constants.ROOM_Y, constants.SCARLET)
+        draw_box(325, 675, constants.SUGGESTION_BUTTONS_X, constants.SUGGESTION_BUTTONS_Y, constants.SCARLET)
         WIN.blit(font.render('Cancel', True, constants.BLACK), (357, 683))
 
         # Check for button clicks
@@ -800,35 +784,49 @@ def make_suggestion(character, notes, room) -> str:
                 x, y = pygame.mouse.get_pos()
 
                 # Characters - Colonel Mustard
-                if 25 <= x <= 25 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                if 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Colonel Mustard'
-                elif 175 <= x <= 175 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Miss Scarlet'
-                elif 325 <= x <= 325 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Mrs.White'
-                elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                elif 475 <= x <= 475 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Reverend Green'
-                elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 150 <= y <= 150 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Mrs.Peacock'
-                elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 150 <= y <= 150 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Professor Plum'
-                elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Knife'
-                elif 175 <= x <= 175 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Candle stick'
-                elif 325 <= x <= 325 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Revolver'
-                elif 475 <= x <= 475 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 475 <= x <= 475 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Rope'
-                elif 25 <= x <= 25 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 300 <= y <= 300 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Lead pipe'
-                elif 175 <= x <= 175 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 300 <= y <= 300 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Wrench'
-                elif 175 <= x <= 175 + constants.ROOM_X and 675 <= y <= 675 + constants.ROOM_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 675 <= y <= 675 + constants.SUGGESTION_BUTTONS_Y:
                     if weapon and char:
                         confirm = True
                         run = False
-                elif 325 <= x <= 325 + constants.ROOM_X and 675 <= y <= 675 + constants.ROOM_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 675 <= y <= 675 + constants.SUGGESTION_BUTTONS_Y:
                     run = False
 
         pygame.display.update()
@@ -964,56 +962,6 @@ def respond_suggestion(cards):
         n.send('next_player')
 
 
-def draw_accusation(character, notes):
-    """
-    Draws the screen for accusations
-    :param character: Character enum
-    :param notes: Array of arrays of strings
-    :return: None
-    """
-    WIN.fill(constants.BACKGROUND)
-    draw_suggestion(character, notes)
-    font = pygame.font.SysFont('freesansbold.ttf', 20)
-
-    # For accusations, we also include the rooms to choose from
-    draw_text('Select a room', 30, constants.BLACK, 25, 375)
-    # Rooms - Hall
-    draw_box(25, 400, constants.ROOM_X, constants.ROOM_Y, constants.HALL)
-    WIN.blit(font.render('Hall', True, constants.BLACK), (70, 410))
-
-    # Lounge
-    draw_box(175, 400, constants.ROOM_X, constants.ROOM_Y, constants.LOUNGE)
-    WIN.blit(font.render('Lounge', True, constants.BLACK), (215, 410))
-
-    # Dining Room
-    draw_box(325, 400, constants.ROOM_X, constants.ROOM_Y, constants.DINING)
-    WIN.blit(font.render('Dining Room', True, constants.BLACK), (345, 410))
-
-    # Kitchen
-    draw_box(475, 400, constants.ROOM_X, constants.ROOM_Y, constants.KITCHEN)
-    WIN.blit(font.render('Kitchen', True, constants.BLACK), (514, 410))
-
-    # Ballroom
-    draw_box(25, 450, constants.ROOM_X, constants.ROOM_Y, constants.BALL)
-    WIN.blit(font.render('Ballroom', True, constants.BLACK), (57, 460))
-
-    # Conservatory
-    draw_box(175, 450, constants.ROOM_X, constants.ROOM_Y, constants.CONSERVATORY)
-    WIN.blit(font.render('Conservatory', True, constants.BLACK), (196, 460))
-
-    # Billiard Room
-    draw_box(325, 450, constants.ROOM_X, constants.ROOM_Y, constants.BILLIARDS)
-    WIN.blit(font.render('Billiard Room', True, constants.BLACK), (345, 460))
-
-    # Library
-    draw_box(475, 450, constants.ROOM_X, constants.ROOM_Y, constants.LIBRARY)
-    WIN.blit(font.render('Library', True, constants.BLACK), (517, 460))
-
-    # Study
-    draw_box(25, 500, constants.ROOM_X, constants.ROOM_Y, constants.STUDY)
-    WIN.blit(font.render('Study', True, constants.BLACK), (65, 510))
-
-
 def handle_accusation(character, notes) -> str:
     """
     Handles selections for accusation, sends it into the server
@@ -1031,7 +979,15 @@ def handle_accusation(character, notes) -> str:
     font = pygame.font.SysFont('freesansbold.ttf', 24)
 
     while not flag:
-        draw_accusation(character, notes)
+        # Set the screen
+        WIN.fill(constants.BACKGROUND)
+        draw_notes(character.value, notes)
+        draw_text('Select a character', 30, constants.BLACK, 25, 75)
+        draw_text('Select a weapon', 30, constants.BLACK, 25, 225)
+        draw_text('Select a room', 30, constants.BLACK, 25, 375)
+        characters_group.draw(WIN)
+        weapons_group.draw(WIN)
+        rooms_group.draw(WIN)
 
         # Section title
         draw_text('Make an Accusation', 60, constants.BLACK, 125, 20)
@@ -1050,11 +1006,11 @@ def handle_accusation(character, notes) -> str:
             WIN.blit(font.render(f'{room}', True, constants.BLACK), (540, 550))
 
         # Confirm button
-        draw_box(175, 675, constants.ROOM_X, constants.ROOM_Y, constants.GREEN)
+        draw_box(175, 675, constants.SUGGESTION_BUTTONS_X, constants.SUGGESTION_BUTTONS_Y, constants.GREEN)
         WIN.blit(font.render('Confirm', True, constants.BLACK), (207, 683))
 
         # Cancel button
-        draw_box(325, 675, constants.ROOM_X, constants.ROOM_Y, constants.SCARLET)
+        draw_box(325, 675, constants.SUGGESTION_BUTTONS_X, constants.SUGGESTION_BUTTONS_Y, constants.SCARLET)
         WIN.blit(font.render('Cancel', True, constants.BLACK), (357, 683))
 
         # Disclaimer
@@ -1069,57 +1025,80 @@ def handle_accusation(character, notes) -> str:
                 x, y = pygame.mouse.get_pos()
 
                 # Characters - Colonel Mustard
-                if 25 <= x <= 25 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                if 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Colonel Mustard'
-                elif 175 <= x <= 175 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Miss Scarlet'
-                elif 325 <= x <= 325 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Mrs.White'
-                elif 475 <= x <= 475 + constants.CHARACTER_X and 100 <= y <= 100 + constants.CHARACTER_Y:
+                elif 475 <= x <= 475 + constants.SUGGESTION_BUTTONS_X \
+                        and 100 <= y <= 100 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Reverend Green'
-                elif 25 <= x <= 25 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 150 <= y <= 150 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Mrs.Peacock'
-                elif 175 <= x <= 175 + constants.CHARACTER_X and 150 <= y <= 150 + constants.CHARACTER_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 150 <= y <= 150 + constants.SUGGESTION_BUTTONS_Y:
                     char = 'Professor Plum'
-                elif 25 <= x <= 25 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Knife'
-                elif 175 <= x <= 175 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Candle stick'
-                elif 325 <= x <= 325 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Revolver'
-                elif 475 <= x <= 475 + constants.WEAPON_X and 250 <= y <= 250 + constants.WEAPON_Y:
+                elif 475 <= x <= 475 + constants.SUGGESTION_BUTTONS_X \
+                        and 250 <= y <= 250 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Rope'
-                elif 25 <= x <= 25 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 300 <= y <= 300 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Lead pipe'
-                elif 175 <= x <= 175 + constants.WEAPON_X and 300 <= y <= 300 + constants.WEAPON_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 300 <= y <= 300 + constants.SUGGESTION_BUTTONS_Y:
                     weapon = 'Wrench'
-                elif 25 <= x <= 25 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 400 <= y <= 400 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Hall'
-                elif 175 <= x <= 175 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 400 <= y <= 400 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Lounge'
-                elif 325 <= x <= 325 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 400 <= y <= 400 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Dining Room'
-                elif 475 <= x <= 475 + constants.ROOM_X and 400 <= y <= 400 + constants.ROOM_Y:
+                elif 475 <= x <= 475 + constants.SUGGESTION_BUTTONS_X \
+                        and 400 <= y <= 400 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Kitchen'
-                elif 25 <= x <= 25 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 450 <= y <= 450 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Ballroom'
-                elif 175 <= x <= 175 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 450 <= y <= 450 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Conservatory'
-                elif 325 <= x <= 325 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 450 <= y <= 450 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Billiard Room'
-                elif 475 <= x <= 475 + constants.ROOM_X and 450 <= y <= 450 + constants.ROOM_Y:
+                elif 475 <= x <= 475 + constants.SUGGESTION_BUTTONS_X \
+                        and 450 <= y <= 450 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Library'
-                elif 25 <= x <= 25 + constants.ROOM_X and 500 <= y <= 500 + constants.ROOM_Y:
+                elif 25 <= x <= 25 + constants.SUGGESTION_BUTTONS_X \
+                        and 500 <= y <= 500 + constants.SUGGESTION_BUTTONS_Y:
                     room = 'Study'
 
                 # Confirm button
-                elif 175 <= x <= 175 + constants.ROOM_X and 675 <= y <= 675 + constants.ROOM_Y:
+                elif 175 <= x <= 175 + constants.SUGGESTION_BUTTONS_X \
+                        and 675 <= y <= 675 + constants.SUGGESTION_BUTTONS_Y:
                     if character and weapon and room:
                         confirm = True
                         flag = True
 
                 # Cancel button
-                elif 325 <= x <= 325 + constants.ROOM_X and 675 <= y <= 675 + constants.ROOM_Y:
+                elif 325 <= x <= 325 + constants.SUGGESTION_BUTTONS_X \
+                        and 675 <= y <= 675 + constants.SUGGESTION_BUTTONS_Y:
                     flag = True
 
         pygame.display.update()
@@ -1275,7 +1254,7 @@ def draw_end_screen(character):
         draw_text(envelope.get_room(), 56, constants.SCARLET, 700, 445)
 
         # Quit button
-        draw_box(300, 600, 3 * constants.ROOM_X, 3 * constants.ROOM_Y, constants.GREEN)
+        draw_box(300, 600, 3 * constants.SUGGESTION_BUTTONS_X, 3 * constants.SUGGESTION_BUTTONS_Y, constants.GREEN)
         draw_text('Quit', 60, constants.BLACK, 435, 625)
 
         for event in pygame.event.get():
@@ -1287,7 +1266,8 @@ def draw_end_screen(character):
             if event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
 
-                if 300 <= x <= 300 + 3*constants.ROOM_X and 600 <= y <= 600 + 3*constants.ROOM_Y:
+                if 300 <= x <= 300 + 3*constants.SUGGESTION_BUTTONS_X \
+                        and 600 <= y <= 600 + 3*constants.SUGGESTION_BUTTONS_Y:
                     run = False
 
         pygame.display.update()
@@ -1328,6 +1308,7 @@ def update_log():
 
 
 def main():
+
     # Make sure that the choice selected by the user is valid
     print("Selecting character...")
     valid = False
@@ -1342,6 +1323,7 @@ def main():
             sys.exit()
 
     print("Creating player...")
+    image_setups()
 
     # How to wait for the start
     ready = False
@@ -1391,15 +1373,16 @@ def main():
             # If there is a pending suggestion, display it to the user
             if pending_suggestion:
                 # Get the suggestion to display it to the user
-                sugg = n.send('get_last_suggestion')
-                sugg_str = f'{sugg.get_character()} with the {sugg.get_weapon()} in the {sugg.get_room()}'
+                suggestion_text = n.send('get_last_suggestion')
+                full = f'{suggestion_text.get_character()} with the {suggestion_text.get_weapon()}' \
+                       f' in the {suggestion_text.get_room()}'
 
-                draw_text(f'{sugg.get_player()} has made a suggestion', 24, constants.SCARLET, 650, 475)
+                draw_text(f'{suggestion_text.get_player()} has made a suggestion', 24, constants.SCARLET, 650, 475)
 
-                if len(sugg_str) <= 60:
-                    draw_text(sugg_str, 18, constants.SCARLET, 640, 500)
+                if len(full) <= 60:
+                    draw_text(full, 18, constants.SCARLET, 640, 500)
                 else:
-                    draw_text(sugg_str, 18, constants.SCARLET, 620, 500)
+                    draw_text(full, 18, constants.SCARLET, 620, 500)
 
             if pending_suggestion is True and (waiting_on and waiting_on.get_character() == selected):
                 print("You have a suggestion to respond to...")
