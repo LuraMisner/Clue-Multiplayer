@@ -8,6 +8,7 @@ import constants
 # noinspection PyTypeChecker
 class Board:
     def __init__(self, window):
+        # TODO: Need new positions to go with the visual
         # Set player positions to display them in the room
         self.room_display = {'Ballroom': [154, 157, 82, 85, 105, 110],
                              'Billiard Room': [235, 237, 263, 283, 285, 308],

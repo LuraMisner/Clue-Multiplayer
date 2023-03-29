@@ -15,6 +15,7 @@ class Client:
         self.WIN = window
         self.n = Network()
         self.log = []
+        self.player_positions = {}
 
         self.board = Board(self.WIN)
         self.cards = []
@@ -58,24 +59,76 @@ class Client:
         self.rooms_group.add(Picture(475, 450, 'images/room-buttons/library.png'))
         self.rooms_group.add(Picture(25, 500, 'images/room-buttons/study.png'))
 
+    def ask_server(self, request):
+        """
+        Asks the server a request
+        :return: Servers response
+        """
+        return self.n.send(request)
+
     def check_our_turn(self) -> bool:
-        return self.n.send('whos_turn').get_character() == self.character
+        """
+        Checks if it is the current players turn
+        :return: Boolean
+        """
+        players_turn = self.ask_server('whos_turn')
+        return players_turn.get_character() == self.character
+
+    def check_pending_suggestion(self) -> bool:
+        """
+        Checks if there is a pending suggestion
+        :return: Boolean
+        """
+        return self.ask_server('check_suggestion_status')
+
+    def waiting_on_you(self) -> bool:
+        """
+        Checks if a suggestion is waiting on you to respond
+        :return: Boolean
+        """
+        waiting = self.ask_server('waiting_on')
+        if waiting:
+            return self.ask_server('waiting_on').get_character() == self.character
+        return False
 
     def update_cards(self):
-        self.cards = self.n.send('get_cards')
+        """
+        Updates the clients cards
+        """
+        self.cards = self.ask_server('get_cards')
 
     def update_notes(self):
-        self.notes = self.n.send('get_notes')
+        """
+        Updates the clients notes
+        """
+        self.notes = self.ask_server('get_notes')
+
+    def update_log(self):
+        """
+        Updates the latest events in our log
+        """
+        self.log = self.ask_server('get_log')
+
+    def update_player_positions(self):
+        """
+        Updates the dicitonary of player positions
+        """
+        self.player_positions = self.ask_server('get_all_positions')
+
+    def update_our_position(self, position):
+        """
+        :param position: Integer position of where our character is
+        """
+        self.ask_server(f'update_position {position}')
 
     # This section contains functions that are used for the pre-game character selection screen
     def show_ready(self):
         """
         Creates a waiting screen for players in the game that have finished selecting their character
-        :return: Nothing
         """
         # Show how many players are ready
         self.WIN.fill(constants.BACKGROUND)
-        num_ready = self.n.send('num_ready')
+        num_ready = self.ask_server('num_ready')
         font = pygame.font.SysFont('freesansbold.ttf', 56)
         self.WIN.blit(font.render(f'Waiting on other players...', True, (0, 0, 0)), (275, 200))
         self.WIN.blit(font.render(f'{num_ready[1]} out of {num_ready[0]} players ready', True,
@@ -84,17 +137,16 @@ class Client:
     def select_character(self):
         """
         Draws the character selection screen and allows the player to select what character they want to be
-        :return: Nothing
         """
         selection_made = False
         choice = None
 
         while not selection_made:
-            available_characters = self.n.send('character_selection')
+            available_characters = self.ask_server('character_selection')
             self.WIN.fill(constants.BACKGROUND)
 
             # How many players ready
-            num_ready = self.n.send('num_ready')
+            num_ready = self.ask_server('num_ready')
             self.draw_text(f'{num_ready[1]} out of {num_ready[0]} players ready', 26, constants.BLACK, 50, 50)
 
             # Fonts
@@ -173,7 +225,7 @@ class Client:
             pygame.display.update()
 
         # Verify the choice is okay, if not then restart this process
-        if self.n.send(choice.value):
+        if self.ask_server(choice.value):
             self.character = choice
         else:
             self.select_character()
@@ -206,16 +258,12 @@ class Client:
         font = pygame.font.SysFont('freesansbold.ttf', size)
         self.WIN.blit(font.render(text, True, color), (x, y))
 
-    def update_log(self):
-        self.log = self.n.send('get_log')
-
     def draw_screen(self):
         """
         Used to call all the individual functions that make up the components of the GUI
-        :return: Nothing
         """
 
-        current_turn = self.n.send('whos_turn')
+        current_turn = self.ask_server('whos_turn')
         self.board.draw_board()
         self.draw_players()
 
@@ -231,7 +279,6 @@ class Client:
     def draw_log(self):
         """
         Log that displays recent actions of players to other players
-        :return: None
         """
         self.update_log()
 
@@ -255,9 +302,8 @@ class Client:
     def draw_players(self):
         """
         Draws the player piece (circle) on the screen at their current position
-        :return: Nothing
         """
-        player_positions = self.n.send('get_all_positions')
+        player_positions = self.ask_server('get_all_positions')
 
         for character, position in player_positions.items():
             square = self.board.get_mapping(position)
@@ -293,7 +339,6 @@ class Client:
         """
         Draws an indicator that tells the player whose turn it is
         :param player: Character whose turn it is
-        :return: Nothing
         """
         self.draw_text(f"It's {player.get_character().value}'s turn", 24, constants.BLACK, 700, 725)
 
@@ -301,14 +346,12 @@ class Client:
         """
         Draws an indicator that tells the player how many moves they have left
         :param move: Integer of how many moves are left
-        :return: Nothing
         """
         self.draw_text(f'You have {move} moves left', 24, constants.SCARLET, 700, 700)
 
     def draw_notes(self):
         """
         Draws information that tells the player what they already know in relation to the murder mystery
-        :return: Nothing
         """
         font = pygame.font.SysFont('freesansbold.ttf', 20)
         if self.character:
@@ -351,7 +394,6 @@ class Client:
     def draw_cards(self):
         """
         Draws the visual of the cards being held by the player
-        :return: Nothing
         """
         font = pygame.font.SysFont('freesansbold.ttf', 14)
         self.draw_text('Your cards', 20, constants.BLACK, 265, 635)
@@ -368,29 +410,27 @@ class Client:
             self.WIN.blit(font.render(f'{card_value}', True, constants.BLACK),
                           (x + 2.5*(17 - len(card_value)), y + 5))
 
-    @staticmethod
-    def occupied(space, player_positions) -> bool:
+    def occupied(self, space) -> bool:
         """
         Shows whether a position is occupied by a player
         :param space: ID of the space (int)
-        :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
         :return: Bool
         """
-        for key in player_positions.keys():
-            if space == player_positions[key]:
+        self.update_player_positions()
+        for key in self.player_positions.keys():
+            if space == self.player_positions[key]:
                 return True
 
         return False
 
-    def calculate_valid_moves(self, player_positions) -> [str]:
+    def calculate_valid_moves(self) -> [str]:
         # TODO: Need to do more handling now that doors are one directional
         """
         Calculates which direction the player can move from their current position
-        :param player_positions: Dictionary mapping {characters name (str) -> position on board (int)}
-        :return: Nothing
         """
         directions = []
-        position = player_positions[self.character.value]
+        self.update_player_positions()
+        position = self.player_positions[self.character.value]
 
         # Check for valid movements (right, left, down, up).
         dr = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -404,7 +444,7 @@ class Client:
 
             # Verify that the rows and columns are within the proper ranges
             if 0 <= nr < 25 and 0 <= nc < 24:
-                if (not self.occupied(space_id, player_positions) and self.board.board[space_id].get_room()) ==\
+                if (not self.occupied(space_id) and self.board.board[space_id].get_room()) ==\
                         RoomType.HALLWAY or Board.is_entrance(space_id):
                     # Add the position to the valid directions dictionary
                     if ind == 0:
@@ -424,21 +464,22 @@ class Client:
         Updates the board to reflect people being in a certain room
         :return: None
         """
-        player_positions = self.n.send('get_all_positions')
+        self.update_player_positions()
         self.board.refresh_room_occupied()
 
-        for player in player_positions.keys():
-            room = self.board.what_room(player_positions[player])
+        for player in self.player_positions.keys():
+            room = self.board.what_room(self.player_positions[player])
 
             if room not in ['Hallway', 'OFB', 'Start']:
-                if player_positions[player] in self.board.room_display[room]:
-                    index = self.board.room_display[room].index(player_positions[player])
+                if self.player_positions[player] in self.board.room_display[room]:
+                    index = self.board.room_display[room].index(self.player_positions[player])
                     self.board.room_occupied[room][index] = True
 
     def give_room_position(self, player_position) -> int:
+        # TODO: May need to come here to do stuff server side
         """
         When the player enters a room, they will be given an available display position within the room
-        :param player_position: Dictionary mapping {characters name (str) -> position on board (int)}
+        :param player_position: Integer of our position
         :return: ID of new player position (int)
         """
 
@@ -467,12 +508,11 @@ class Client:
                 index = self.board.room_display[room].index(position)
                 self.board.room_occupied[room][index] = False
 
-    def pick_exit(self, room) -> int:
+    def pick_exit(self, room):
         """
         When there is multiple exits in a room, this function allows the user to select the one they wish to
         leave through by clicking on the space
         :param room: String representing the room name
-        :return: Integer of selected entrance/exit position
         """
         self.draw_text(f'Select an exit from {room} by clicking on it', 24, constants.SCARLET, 630, 700)
 
@@ -488,7 +528,8 @@ class Client:
                             x, y, x_length, y_length = self.board.get_mapping(entrance)
 
                             if x <= x2 <= x + x_length and y <= y2 <= y + y_length:
-                                return entrance
+                                self.update_our_position(entrance)
+                                return
 
             pygame.display.update()
 
@@ -606,7 +647,7 @@ class Client:
         self.WIN.fill(constants.BACKGROUND)
 
         # Display the last suggestion
-        suggestion = self.n.send('get_last_suggestion')
+        suggestion = self.ask_server('get_last_suggestion')
         sug_str = f'{suggestion.get_character()} with the {suggestion.get_weapon()} in the {suggestion.get_room()}'
 
         # Trying to center this
@@ -654,20 +695,19 @@ class Client:
         if choice == 'Accusation':
             self.handle_accusation()
 
-    def roll_dice(self, exiting) -> {str: int}:
+    def roll_dice(self, exiting):
         """
         Simulates a double dice roll and handles the movement
         :param exiting: Boolean of if the player is leaving a room or not
-        :returns player_position: Dictionary mapping {characters name (str) -> position on board (int)}
         """
-        player_positions = self.n.send('get_all_positions')
+        self.update_player_positions()
 
         # How many spaces the player can move during their turn (equivalent to rolling 2 dice)
         moves = random.randint(2, 12)
         pygame.event.clear()
 
         while moves > 0:
-            valid_moves = self.calculate_valid_moves(player_positions)
+            valid_moves = self.calculate_valid_moves()
             ev = pygame.event.get()
             for event in ev:
 
@@ -675,47 +715,45 @@ class Client:
 
                     if event.key == pygame.K_RIGHT:
                         if 'Right' in valid_moves:
-                            player_positions[self.character.value] += 1
+                            self.player_positions[self.character.value] += 1
                             moves -= 1
                             exiting = False
 
                     elif event.key == pygame.K_LEFT:
                         if 'Left' in valid_moves:
-                            player_positions[self.character.value] -= 1
+                            self.player_positions[self.character.value] -= 1
                             moves -= 1
                             exiting = False
 
                     elif event.key == pygame.K_DOWN:
                         if 'Down' in valid_moves:
-                            player_positions[self.character.value] += 24
+                            self.player_positions[self.character.value] += 24
                             moves -= 1
                             exiting = False
 
                     elif event.key == pygame.K_UP:
                         if 'Up' in valid_moves:
-                            player_positions[self.character.value] -= 24
+                            self.player_positions[self.character.value] -= 24
                             moves -= 1
                             exiting = False
 
             # Handle a player entering the room
-            if not exiting and Board.is_entrance(player_positions[self.character.value]):
-
+            if not exiting and Board.is_entrance(self.player_positions[self.character.value]):
                 moves = 0
                 # Give them the illusion of actually entering the room
+                self.update_our_position(self.player_positions[self.character.value])
                 self.draw_screen()
                 self.draw_moves(moves)
-                self.n.send(f'update_position {player_positions[self.character.value]}')
 
-                player_positions[self.character.value] = \
-                    self.give_room_position(player_positions[self.character.value])
-                self.suggest_or_pass(self.board.what_room(player_positions[self.character.value]))
+                self.player_positions[self.character.value] = \
+                    self.give_room_position(self.player_positions[self.character.value])
+                self.suggest_or_pass(self.board.what_room(self.player_positions[self.character.value]))
 
             self.draw_screen()
             self.draw_moves(moves)
-            self.n.send(f'update_position {player_positions[self.character.value]}')
+            self.update_our_position(self.player_positions[self.character.value])
             pygame.display.update()
 
-        return player_positions
 
     def make_suggestion(self, room) -> str:
         """
@@ -815,12 +853,12 @@ class Client:
             pygame.display.update()
 
         if confirm:
-            self.n.send(f'make_suggestion {char},{weapon},{room}')
-            ready = self.n.send('check_suggestion_status')
+            self.ask_server(f'make_suggestion {char},{weapon},{room}')
+            ready = self.ask_server('check_suggestion_status')
             title = pygame.font.SysFont('freesansbold.ttf', 40)
 
             while ready:
-                c = self.n.send('waiting_on')
+                c = self.ask_server('waiting_on')
                 self.WIN.fill(constants.BACKGROUND)
                 self.WIN.blit(title.render(f'{char} with the {weapon} in the {room}', True, constants.BLACK),
                               (150, 100))
@@ -828,13 +866,13 @@ class Client:
                               (240, 150))
                 pygame.display.update()
                 time.sleep(1)
-                ready = self.n.send('check_suggestion_status')
+                ready = self.ask_server('check_suggestion_status')
 
             # Get response
-            response = self.n.send('get_suggestion_response')
+            response = self.ask_server('get_suggestion_response')
 
             if response != 'No one could disprove':
-                self.n.send(f'add_note {response}')
+                self.ask_server(f'add_note {response}')
             else:
                 self.accusation_or_pass()
 
@@ -877,7 +915,7 @@ class Client:
         Handles the choice of card to show during a suggestion
         :return: Nothing
         """
-        suggestion = self.n.send('get_last_suggestion')
+        suggestion = self.ask_server('get_last_suggestion')
 
         related_cards = []
         for card in self.cards:
@@ -939,9 +977,9 @@ class Client:
             pygame.display.update()
 
         if card_choice:
-            self.n.send(f'answer_suggestion {card_choice}')
+            self.ask_server(f'answer_suggestion {card_choice}')
         else:
-            self.n.send('next_player')
+            self.ask_server('next_player')
 
     def handle_accusation(self) -> str:
         """
@@ -1085,7 +1123,7 @@ class Client:
 
         if flag and confirm:
             # Send the accusation to the server
-            self.n.send(f'make_accusation {char},{weapon},{room}')
+            self.ask_server(f'make_accusation {char},{weapon},{room}')
         else:
             # Cancel button was pressed
             return 'Cancelled'
@@ -1130,7 +1168,7 @@ class Client:
         self.draw_screen()
         pygame.display.update()
 
-        player_positions = self.n.send('get_all_positions')
+        player_positions = self.ask_server('get_all_positions')
 
         self.populate_rooms()
         room = self.board.what_room(player_positions[self.character.value])
@@ -1146,9 +1184,11 @@ class Client:
 
                 # If there's multiple exits, let the player choose which one they want to leave from
                 if len(constants.ENTRANCES[room]) > 1:
-                    player_positions[self.character.value] = self.pick_exit(room)
+                    self.pick_exit(room)
+                    self.update_player_positions()
                 else:
-                    player_positions[self.character.value] = constants.ENTRANCES[room][0]
+                    self.update_our_position(constants.ENTRANCES[room][0])
+                    self.update_player_positions()
 
                 self.roll_dice(True)
 
@@ -1164,15 +1204,18 @@ class Client:
 
             elif choice == 'Passage':
                 if room == 'Kitchen':
-                    player_positions[self.character.value] = constants.ENTRANCES['Study'][0]
+                    self.player_positions[self.character.value] = constants.ENTRANCES['Study'][0]
                 elif room == 'Study':
-                    player_positions[self.character.value] = constants.ENTRANCES['Kitchen'][0]
+                    self.player_positions[self.character.value] = constants.ENTRANCES['Kitchen'][0]
                 elif room == 'Conservatory':
-                    player_positions[self.character.value] = constants.ENTRANCES['Lounge'][0]
+                    self.player_positions[self.character.value] = constants.ENTRANCES['Lounge'][0]
                 elif room == 'Lounge':
-                    player_positions[self.character.value] = constants.ENTRANCES['Conservatory'][0]
+                    self.player_positions[self.character.value] = constants.ENTRANCES['Conservatory'][0]
 
-                player_positions[self.character.value] = self.give_room_position(player_positions[self.character.value])
+                self.player_positions[self.character.value] = \
+                    self.give_room_position(player_positions[self.character.value])
+                self.update_our_position(self.player_positions[self.character.value])
+
                 self.draw_screen()
                 room = self.board.what_room(player_positions[self.character.value])
                 pygame.display.update()
@@ -1183,15 +1226,14 @@ class Client:
             # Roll the Dice, or make an accusation
             choice = self.roll_or_accuse()
             if choice == 'Move':
-                player_positions = self.roll_dice(False)
+                self.roll_dice(False)
             elif choice == 'Accusation':
                 status = self.handle_accusation()
                 if status and status == 'Cancelled':
                     return self.handle_turn()
 
-        # Send updated position to the server
-        self.n.send(f'update_position {player_positions[self.character.value]}')
-        self.n.send('turn_done')
+        # Tell the server the turn is done
+        self.ask_server('turn_done')
 
 # This section handles the end of the game visuals
     def draw_disqualification(self):
@@ -1206,8 +1248,8 @@ class Client:
         Draws end game screen that displays the winner
         :return: Nothing
         """
-        winner = self.n.send('get_winner')
-        envelope = self.n.send('get_envelope')
+        winner = self.ask_server('get_winner')
+        envelope = self.ask_server('get_envelope')
         run = True
 
         while run:

@@ -46,8 +46,6 @@ def main():
 
     # Make sure that the choice selected by the user is valid
     print("Selecting character...")
-    selected = None
-
     try:
         client.select_character()
     except TypeError:
@@ -75,18 +73,19 @@ def main():
         # Handle our turn
         if client.check_our_turn():
             if not disqualified:
-                player_positions = client.handle_turn()
+                client.handle_turn()
                 client.draw_screen()
 
         # If it's not our turn, check for a suggestion
         if not client.check_our_turn():
-            waiting_on = client.n.send('waiting_on')
-            pending_suggestion = client.n.send('check_suggestion_status')
+            pending_suggestion = client.check_pending_suggestion()
+            waiting_on = client.waiting_on_you()
 
             # If there is a pending suggestion, display it to the user
             if pending_suggestion:
+
                 # Get the suggestion to display it to the user
-                suggestion_text = client.n.send('get_last_suggestion')
+                suggestion_text = client.ask_server('get_last_suggestion')
                 full = f'{suggestion_text.get_character()} with the {suggestion_text.get_weapon()}' \
                        f' in the {suggestion_text.get_room()}'
 
@@ -98,20 +97,21 @@ def main():
                 else:
                     client.draw_text(full, 18, constants.SCARLET, 620, 500)
 
-            if pending_suggestion is True and (waiting_on and waiting_on.get_character() == selected):
+            # If there is a pending suggestion and its waiting on you, respond to it
+            if pending_suggestion is True and waiting_on is True:
                 print("You have a suggestion to respond to...")
                 client.respond_suggestion()
 
         # Check if our player is disqualified from the match
         if not disqualified:
-            disqualified = client.n.send(f'check_disqualified')
+            disqualified = client.ask_server(f'check_disqualified')
 
         # If the player has been disqualified, then add information to the screen to inform them
         if disqualified:
             client.draw_disqualification()
 
         # If the game has been won, then display the wining screen
-        game_finished = client.n.send('game_finished')
+        game_finished = client.ask_server('game_finished')
         if game_finished:
             run = False
             client.draw_end_screen()
@@ -120,7 +120,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # Send a signal to the server that the game is being quit early
-                client.n.send(f'early_quit')
+                client.ask_server(f'early_quit')
                 run = False
 
         # Update the window
