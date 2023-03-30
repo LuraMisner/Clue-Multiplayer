@@ -424,7 +424,6 @@ class Client:
         return False
 
     def calculate_valid_moves(self) -> [str]:
-        # TODO: Need to do more handling now that doors are one directional
         """
         Calculates which direction the player can move from their current position
         """
@@ -445,7 +444,7 @@ class Client:
             # Verify that the rows and columns are within the proper ranges
             if 0 <= nr < 25 and 0 <= nc < 24:
                 if (not self.occupied(space_id) and self.board.board[space_id].get_room()) ==\
-                        RoomType.HALLWAY or Board.is_entrance(space_id):
+                        RoomType.HALLWAY or (Board.is_entrance(space_id) and Board.in_doorway(position)):
                     # Add the position to the valid directions dictionary
                     if ind == 0:
                         directions.append('Right')
@@ -476,7 +475,6 @@ class Client:
                     self.board.room_occupied[room][index] = True
 
     def give_room_position(self, player_position) -> int:
-        # TODO: May need to come here to do stuff server side
         """
         When the player enters a room, they will be given an available display position within the room
         :param player_position: Integer of our position
@@ -753,7 +751,6 @@ class Client:
             self.draw_moves(moves)
             self.update_our_position(self.player_positions[self.character.value])
             pygame.display.update()
-
 
     def make_suggestion(self, room) -> str:
         """
@@ -1168,10 +1165,9 @@ class Client:
         self.draw_screen()
         pygame.display.update()
 
-        player_positions = self.ask_server('get_all_positions')
-
+        self.update_player_positions()
         self.populate_rooms()
-        room = self.board.what_room(player_positions[self.character.value])
+        room = self.board.what_room(self.player_positions[self.character.value])
 
         # If they are in a room
         if room not in ['Hallway', 'OFB', 'Start']:
@@ -1180,7 +1176,7 @@ class Client:
 
             if choice == 'Move':
                 # Free the position in the room
-                self.free_position(room, player_positions[self.character.value])
+                self.free_position(room, self.player_positions[self.character.value])
 
                 # If there's multiple exits, let the player choose which one they want to leave from
                 if len(constants.ENTRANCES[room]) > 1:
@@ -1203,21 +1199,29 @@ class Client:
                     return self.handle_turn()
 
             elif choice == 'Passage':
+                # Set it to the passage of the other room
                 if room == 'Kitchen':
-                    self.player_positions[self.character.value] = constants.ENTRANCES['Study'][0]
+                    self.player_positions[self.character.value] = 599
                 elif room == 'Study':
-                    self.player_positions[self.character.value] = constants.ENTRANCES['Kitchen'][0]
+                    self.player_positions[self.character.value] = 0
                 elif room == 'Conservatory':
-                    self.player_positions[self.character.value] = constants.ENTRANCES['Lounge'][0]
+                    self.player_positions[self.character.value] = 456
                 elif room == 'Lounge':
-                    self.player_positions[self.character.value] = constants.ENTRANCES['Conservatory'][0]
+                    self.player_positions[self.character.value] = 142
+
+                # Gives the illusion of going through the passage
+                self.update_our_position(self.player_positions[self.character.value])
+                self.draw_screen()
+                pygame.display.update()
+                time.sleep(.75)
 
                 self.player_positions[self.character.value] = \
-                    self.give_room_position(player_positions[self.character.value])
+                    self.give_room_position(self.player_positions[self.character.value])
                 self.update_our_position(self.player_positions[self.character.value])
+                self.update_player_positions()
 
                 self.draw_screen()
-                room = self.board.what_room(player_positions[self.character.value])
+                room = self.board.what_room(self.player_positions[self.character.value])
                 pygame.display.update()
 
                 self.suggest_or_pass(room)

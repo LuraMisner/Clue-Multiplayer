@@ -21,7 +21,7 @@ class Player:
         :param card: Card object
         :return: None
         """
-        if card in ['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mr.Peacock', 'Miss Scarlet', 'Mrs.White']:
+        if card in ['Colonel Mustard', 'Professor Plum', 'Reverend Green', 'Mrs.Peacock', 'Miss Scarlet', 'Mrs.White']:
             self.notes[0].append(card)
         elif card in ['Knife', 'Candle stick', 'Revolver', 'Rope', 'Lead pipe', 'Wrench']:
             self.notes[1].append(card)

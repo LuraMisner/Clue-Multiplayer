@@ -13,8 +13,12 @@ START_POSITIONS = {'Colonel Mustard': 408, 'Miss Scarlet': 583, 'Mrs.Peacock': 1
 
 # Entrances to rooms
 ENTRANCES = {'Ballroom': [128, 135, 177, 182], 'Billiard Room': [234, 310], 'Conservatory': [114],
-             'Dining Room': [295, 366], 'Hall': [443, 444, 470], 'Kitchen': [148],
+             'Dining Room': [295, 366], 'Hall': [443, 444, 470], 'Kitchen': [149],
              'Library': [356, 401], 'Lounge': [462], 'Study': [521]}
+
+ENTER_FROM = {'Ballroom': [127, 136, 201, 206], 'Billiard Room': [233, 334], 'Conservatory': [138],
+              'Dining Room': [296, 390], 'Hall': [419, 420, 471], 'Kitchen': [150],
+              'Library': [332, 400], 'Lounge': [463], 'Study': [497]}
 
 # Sizes
 CHARACTER_SELECTION_SIZE = 100

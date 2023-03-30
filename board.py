@@ -8,17 +8,16 @@ import constants
 # noinspection PyTypeChecker
 class Board:
     def __init__(self, window):
-        # TODO: Need new positions to go with the visual
         # Set player positions to display them in the room
-        self.room_display = {'Ballroom': [154, 157, 82, 85, 105, 110],
-                             'Billiard Room': [235, 237, 263, 283, 285, 308],
-                             'Conservatory': [141, 91, 119, 43, 46, 21],
-                             'Dining Room': [246, 244, 241, 318, 316, 313],
-                             'Hall': [465, 470, 513, 518, 561, 566],
-                             'Kitchen': [100, 97, 26, 28, 146, 3],
-                             'Library': [378, 380, 382, 426, 428, 430],
-                             'Lounge': [486, 483, 480, 534, 531, 528],
-                             'Study': [545, 523, 526, 551, 571, 574]}
+        self.room_display = {'Ballroom': [36, 57, 62, 83, 154, 157],
+                             'Billiard Room': [211, 213, 215, 287, 306, 308],
+                             'Conservatory': [19, 21, 23, 91, 117, 119],
+                             'Dining Room': [241, 244, 312, 343, 362, 364],
+                             'Hall': [446, 465, 513, 542, 561, 565],
+                             'Kitchen': [28, 73, 100, 121, 146, 148],
+                             'Library': [354, 358, 377, 407, 451, 453],
+                             'Lounge': [484, 504, 506, 558, 576, 580],
+                             'Study': [524, 527, 546, 572, 575, 595]}
 
         # Keeps track of how many players have occupied the room
         self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
@@ -77,7 +76,7 @@ class Board:
         self.room_group.add(library)
 
     @staticmethod
-    def is_entrance(space):
+    def is_entrance(space) -> bool:
         """
         Determines if a position is an entrance to a room
         :param space: Integer ID of the position
@@ -89,7 +88,20 @@ class Board:
 
         return False
 
-    def get_mapping(self, key):
+    @staticmethod
+    def in_doorway(position) -> bool:
+        """
+        Determines if a position is in front of an entrance
+        :param position: Integer ID of the position
+        :return: Boolean
+        """
+        for key in constants.ENTER_FROM.keys():
+            if position in constants.ENTER_FROM[key]:
+                return True
+
+        return False
+
+    def get_mapping(self, key) -> pygame.Rect:
         """
         :param key: Integer of space ID
         :return: Pygame.rect object -> (top left x, top left right, x length, y length)
@@ -97,7 +109,7 @@ class Board:
         if key in self.board_mapping:
             return self.board_mapping[key]
 
-    def what_room(self, position):
+    def what_room(self, position) -> str:
         """
         Returns what room a space is
         :param position: Integer of space ID
@@ -108,7 +120,6 @@ class Board:
     def refresh_room_occupied(self):
         """
         Refreshes room status to unoccupied
-        :return: Nothing
         """
         self.room_occupied = {'Ballroom': [False, False, False, False, False, False],
                               'Billiard Room': [False, False, False, False, False, False],
@@ -123,7 +134,6 @@ class Board:
     def create_board(self):
         """
         Creates the board by each space row by row and populates the board array
-        :return: Nothing
         """
         # Create the 25 x 24 space board
         # Row 0
@@ -779,7 +789,6 @@ class Board:
     def draw_board(self):
         """
         Draws out the visuals for the board representation on the GUI, also creates the board mapping of ID -> Square
-        :return: Nothing
         """
         # How big to make the spaces
         SQUARE_SIZE = constants.SQUARE_SIZE
