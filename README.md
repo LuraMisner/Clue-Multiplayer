@@ -29,7 +29,7 @@ to the participating parties.
 
 After that, run the server file. If it is successful you will see "Waiting for a connection, Server Started" in the terminal.
 
-Once the server is running, each player can run the client file to load the game.
+Once the server is running, each player can run the main.py file to load the game.
 The game will start when all players connected have selected and confirmed their character. 
 
 ### Want to play the game with friends online?

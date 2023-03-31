@@ -87,7 +87,7 @@ def threaded_client(connect, p, gameid):
                         reply = game.available_characters
 
                     # Make the player once the character has been selected
-                    elif data in ['Colonel Mustard', 'Miss Scarlet', 'Mr.Peacock',
+                    elif data in ['Colonel Mustard', 'Miss Scarlet', 'Mrs.Peacock',
                                   'Mrs.White', 'Professor Plum', 'Reverend Green']:
                         # Make the player
                         try:
